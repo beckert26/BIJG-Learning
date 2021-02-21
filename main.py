@@ -9,21 +9,20 @@ python -m arcade.examples.starting_template
 """
 import arcade
 import os
+import random
 from CreatureCharacter import *
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Starting Template"
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
+SCREEN_TITLE = "BIJG Learning: Evolution Simulation"
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
 
+CREATURES_TO_SPAWN=20
 
-
-MOVEMENT_SPEED = 5
-
-
-
+#Testing movement speed
+MOVEMENT_SPEED = 3
 
 class MyGame(arcade.Window):
     """
@@ -60,12 +59,17 @@ class MyGame(arcade.Window):
         #Sprite List
         self.creature_list=arcade.SpriteList()
 
-        self.creature = CreatureCharacter()
-        self.creature.center_x=200
-        self.creature.center_y=150
-        self.creature_list.append(self.creature)
+        for i in range(CREATURES_TO_SPAWN):
+            self.creature = CreatureCharacter()
+            #random color
+            r=random.randint(0,255)
+            g=random.randint(0,255)
+            b=random.randint(0,255)
+            self.creature._set_color([r,g,b])
+            self.creature.center_x=random.randint(20,SCREEN_WIDTH-20)
+            self.creature.center_y=random.randint(20,SCREEN_HEIGHT-20)
+            self.creature_list.append(self.creature)
 
-        pass
 
     def on_draw(self):
         """
@@ -86,12 +90,28 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
+        for i in range(CREATURES_TO_SPAWN):
+            self.move_creature(self.creature_list[i])
 
         self.creature_list.update()
 
         self.creature_list.update_animation()
-        pass
 
+
+    def move_creature(self, creature):
+        x=random.randint(0,3)
+        if(x==0):
+            if(creature.center_y<SCREEN_HEIGHT):
+                creature.change_y = MOVEMENT_SPEED
+        elif(x==1):
+            if(creature.center_y>0):
+                creature.change_y = -MOVEMENT_SPEED
+        elif(x==2):
+            if (creature.center_x > 0):
+                creature.change_x = -MOVEMENT_SPEED
+        else:
+            if (creature.center_x < SCREEN_WIDTH):
+                creature.change_x = MOVEMENT_SPEED
     def on_key_press(self, key, key_modifiers):
         """
         Called whenever a key on the keyboard is pressed.

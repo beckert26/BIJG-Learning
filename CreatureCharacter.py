@@ -1,4 +1,5 @@
 import arcade
+from main import *
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
@@ -23,11 +24,13 @@ class CreatureCharacter(arcade.Sprite):
 
         self.cur_texture=0
 
+
+
         self.character_face_direction = RIGHT_FACING
 
         self.scale=CHARACTER_SCALING
 
-        self.state="damaged"
+        self.state="walking"
 
         #load sprite textures for idle
         self.idle_texture_pair=load_texture_pair(f"sprites/slimeIdle.gif")
@@ -72,6 +75,16 @@ class CreatureCharacter(arcade.Sprite):
             self.texture = self.idle_texture_pair[self.character_face_direction]
             return
 
+        #change state based on position as test
+        if(self.center_x<=SCREEN_WIDTH/2 and self.center_y<=SCREEN_HEIGHT/2):
+            self.state=="walking"
+        elif(self.center_x>=SCREEN_WIDTH/2 and self.center_y<=SCREEN_HEIGHT/2):
+            self.state="attacking"
+        elif(self.center_x<=SCREEN_WIDTH/2 and self.center_y>=SCREEN_HEIGHT/2):
+            self.state="damaged"
+        else:
+            self.state="dying"
+
         #walking animation
         if(self.state=="walking"):
             self.cur_texture+=1
@@ -80,6 +93,7 @@ class CreatureCharacter(arcade.Sprite):
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction
             self.texture = self.walking_textures[frame][direction]
+        #attacking
         elif(self.state=="attacking"):
             self.cur_texture += 1
             if (self.cur_texture > 4 * UPDATES_PER_FRAME):
@@ -87,6 +101,7 @@ class CreatureCharacter(arcade.Sprite):
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction
             self.texture = self.attacking_textures[frame][direction]
+        #damaged
         elif(self.state=="damaged"):
             self.cur_texture += 1
             if (self.cur_texture > 5 * UPDATES_PER_FRAME):
@@ -94,6 +109,7 @@ class CreatureCharacter(arcade.Sprite):
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction
             self.texture = self.damaged_textures[frame][direction]
+        #dying
         elif(self.state=="dying"):
             self.cur_texture += 1
             if (self.cur_texture > 14 * UPDATES_PER_FRAME):
