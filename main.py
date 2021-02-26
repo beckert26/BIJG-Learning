@@ -20,7 +20,8 @@ SCREEN_TITLE = "BIJG Learning: Evolution Simulation"
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
 
-VIEW_SPEED=2
+#viewport modifiers
+VIEW_SPEED=5
 ZOOM_SPEED_Y = (SCREEN_HEIGHT*.005)
 ZOOM_SPEED_X = (SCREEN_WIDTH*.005)
 
@@ -341,6 +342,10 @@ class MyGame(arcade.Window):
             self.view_zoom="none"
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
+
+        print("x:" + str(delta_x))
+        print("y:" + str(delta_y))
+
         if(x>10 and x<100):
             self.view_change="left"
         elif(x>SCREEN_WIDTH-100 and x<SCREEN_WIDTH-10):
@@ -350,6 +355,9 @@ class MyGame(arcade.Window):
         elif(y>SCREEN_HEIGHT-100 and y<SCREEN_HEIGHT-10):
             self.view_change="down"
         else:
+            self.view_change="none"
+
+        if( delta_x<-10 or delta_x>10 or delta_y<-10 or delta_y>10):
             self.view_change="none"
 
     def on_mouse_press(self, x, y, button, key_modifiers):
