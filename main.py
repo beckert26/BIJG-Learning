@@ -20,6 +20,11 @@ SCREEN_TITLE = "BIJG Learning: Evolution Simulation"
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
 
+#viewport modifiers
+VIEW_SPEED=5
+ZOOM_SPEED_Y = (SCREEN_HEIGHT*.005)
+ZOOM_SPEED_X = (SCREEN_WIDTH*.005)
+
 #how many squares for 2d array of biome
 BIOME_SIZE=25
 
@@ -48,6 +53,13 @@ class MyGame(arcade.Window):
 
         # If you have sprite lists, you should create them here,
         # and set them to None
+        #view port
+        self.view_change="none"
+        self.view_zoom="none"
+        self.view_left=0
+        self.view_right=SCREEN_WIDTH
+        self.view_down=0
+        self.view_up=SCREEN_HEIGHT
 
         # hold creature list
         self.creature_list = None
@@ -250,28 +262,54 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        for i in range(CREATURES_TO_SPAWN):
-            self.move_creature(self.creature_list[i])
+        #for i in range(CREATURES_TO_SPAWN):
+            #self.move_creature(self.creature_list[i])
+
 
         self.creature_list.update()
 
         self.creature_list.update_animation()
 
+        #view port
+        if (self.view_change=="left"):
+            self.view_left -= VIEW_SPEED
+            self.view_right -= VIEW_SPEED
+        if (self.view_change=="right"):
+            self.view_left += VIEW_SPEED
+            self.view_right += VIEW_SPEED
+        if (self.view_change=="up"):
+            self.view_up -= VIEW_SPEED
+            self.view_down -= VIEW_SPEED
+        if (self.view_change=="down"):
+            self.view_up += VIEW_SPEED
+            self.view_down += VIEW_SPEED
+        if(self.view_zoom=="zoom_out"):
+            self.view_up += ZOOM_SPEED_Y
+            self.view_down -= ZOOM_SPEED_Y
+            self.view_right += ZOOM_SPEED_X
+            self.view_left -=ZOOM_SPEED_X
+        if (self.view_zoom == "zoom_in"):
+            self.view_up -= ZOOM_SPEED_Y
+            self.view_down += ZOOM_SPEED_Y
+            self.view_right -= ZOOM_SPEED_X
+            self.view_left += ZOOM_SPEED_X
+        arcade.set_viewport(self.view_left,self.view_right, self.view_down, self.view_up)
 
-    def move_creature(self, creature):
-        x=random.randint(0,3)
-        if(x==0):
-            if(creature.center_y<SCREEN_HEIGHT):
-                creature.change_y = MOVEMENT_SPEED
-        elif(x==1):
-            if(creature.center_y>0):
-                creature.change_y = -MOVEMENT_SPEED
-        elif(x==2):
-            if (creature.center_x > 0):
-                creature.change_x = -MOVEMENT_SPEED
-        else:
-            if (creature.center_x < SCREEN_WIDTH):
-                creature.change_x = MOVEMENT_SPEED
+
+    # def move_creature(self, creature):
+    #     x=random.randint(0,3)
+    #     if(x==0):
+    #         if(creature.center_y<SCREEN_HEIGHT):
+    #             creature.change_y = MOVEMENT_SPEED
+    #     elif(x==1):
+    #         if(creature.center_y>0):
+    #             creature.change_y = -MOVEMENT_SPEED
+    #     elif(x==2):
+    #         if (creature.center_x > 0):
+    #             creature.change_x = -MOVEMENT_SPEED
+    #     else:
+    #         if (creature.center_x < SCREEN_WIDTH):
+    #             creature.change_x = MOVEMENT_SPEED
     def on_key_press(self, key, key_modifiers):
         """
         Called whenever a key on the keyboard is pressed.
@@ -287,6 +325,10 @@ class MyGame(arcade.Window):
             self.creature.change_x = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT:
             self.creature.change_x = MOVEMENT_SPEED
+        if( key == arcade.key.MINUS):
+            self.view_zoom="zoom_out"
+        if (key == arcade.key.EQUAL):
+            self.view_zoom = "zoom_in"
 
     def on_key_release(self, key, key_modifiers):
         """
@@ -296,12 +338,27 @@ class MyGame(arcade.Window):
             self.creature.change_y = 0
         elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.creature.change_x = 0
+        elif (key == arcade.key.MINUS or key == arcade.key.EQUAL):
+            self.view_zoom="none"
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
-        """
-        Called whenever the mouse moves.
-        """
-        pass
+
+        print("x:" + str(delta_x))
+        print("y:" + str(delta_y))
+
+        if(x>10 and x<100):
+            self.view_change="left"
+        elif(x>SCREEN_WIDTH-100 and x<SCREEN_WIDTH-10):
+            self.view_change="right"
+        elif(y>10 and y<100):
+            self.view_change="up"
+        elif(y>SCREEN_HEIGHT-100 and y<SCREEN_HEIGHT-10):
+            self.view_change="down"
+        else:
+            self.view_change="none"
+
+        if( delta_x<-10 or delta_x>10 or delta_y<-10 or delta_y>10):
+            self.view_change="none"
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         """

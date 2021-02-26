@@ -2,7 +2,7 @@
 
 from main import *
 
-BIOME_SCALING = .25
+BIOME_SCALING = 1
 UPDATES_PER_FRAME=5
 
 class Biomes(arcade.Sprite):
