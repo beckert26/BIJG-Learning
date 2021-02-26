@@ -21,7 +21,7 @@ CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
 
 #how many squares for 2d array of biome
-BIOME_SIZE=16
+BIOME_SIZE=25
 
 CREATURES_TO_SPAWN=20
 
@@ -88,118 +88,137 @@ class MyGame(arcade.Window):
 
     def setup_biomes(self):
         # add biomes
-        # random number assignment then spread
-        plain_random_x = random.randint(1, BIOME_SIZE-1)
-        plain_random_y = random.randint(1, BIOME_SIZE-1)
-        desert_random_x = random.randint(1, BIOME_SIZE-1)
-        desert_random_y = random.randint(1, BIOME_SIZE-1)
-        mountain_random_x = random.randint(1, BIOME_SIZE-1)
-        mountain_random_y = random.randint(1, BIOME_SIZE-1)
+        # random number assignment for 3 biome squares
+        plain_random_x1 = random.randint(1, BIOME_SIZE-1)
+        plain_random_y1 = random.randint(1, BIOME_SIZE-1)
+        plain_random_x2 = random.randint(1, BIOME_SIZE - 1)
+        plain_random_y2 = random.randint(1, BIOME_SIZE - 1)
+        plain_random_x3 = random.randint(1, BIOME_SIZE - 1)
+        plain_random_y3 = random.randint(1, BIOME_SIZE - 1)
+        desert_random_x1 = random.randint(1, BIOME_SIZE - 1)
+        desert_random_y1 = random.randint(1, BIOME_SIZE - 1)
+        desert_random_x2 = random.randint(1, BIOME_SIZE - 1)
+        desert_random_y2 = random.randint(1, BIOME_SIZE - 1)
+        desert_random_x3 = random.randint(1, BIOME_SIZE - 1)
+        desert_random_y3 = random.randint(1, BIOME_SIZE - 1)
+        mountain_random_x1 = random.randint(1, BIOME_SIZE - 1)
+        mountain_random_y1 = random.randint(1, BIOME_SIZE - 1)
+        mountain_random_x2 = random.randint(1, BIOME_SIZE - 1)
+        mountain_random_y2 = random.randint(1, BIOME_SIZE - 1)
+        mountain_random_x3 = random.randint(1, BIOME_SIZE - 1)
+        mountain_random_y3 = random.randint(1, BIOME_SIZE - 1)
         # add biomes
         #plain
         self.biome=Biomes(0)
-        self.biome_list[plain_random_x][plain_random_y]=self.biome
+        self.biome_list[plain_random_x1][plain_random_y1]=self.biome
+        self.biome = Biomes(0)
+        self.biome_list[plain_random_x2][plain_random_y2] = self.biome
+        self.biome = Biomes(0)
+        self.biome_list[plain_random_x3][plain_random_y3] = self.biome
         #mountain
         self.biome = Biomes(1)
-        self.biome_list[mountain_random_x][mountain_random_y] = self.biome
+        self.biome_list[mountain_random_x1][mountain_random_y1] = self.biome
+        self.biome = Biomes(1)
+        self.biome_list[mountain_random_x2][mountain_random_y2] = self.biome
+        self.biome = Biomes(1)
+        self.biome_list[mountain_random_x3][mountain_random_y3] = self.biome
         #desert
         self.biome = Biomes(2)
-        self.biome_list[desert_random_x][desert_random_y] = self.biome
+        self.biome_list[desert_random_x1][desert_random_y1] = self.biome
+        self.biome = Biomes(2)
+        self.biome_list[desert_random_x2][desert_random_y2] = self.biome
+        self.biome = Biomes(2)
+        self.biome_list[desert_random_x3][desert_random_y3] = self.biome
 
         #expand algorithm
         is_filled=False
-        #control whether plain can be filled
+        #fill conditions
         fill_plain=True
         fill_mountain=True
         fill_desert=True
         while(is_filled==False):
             #number of biomes
-            for x in range(3):
-                for i in range(BIOME_SIZE):
-                    print()
-                    for j in range(BIOME_SIZE):
-                        print(self.biome_list[i][j].type+" ", end='')
-                        if self.biome_list[i][j].type=="plain" and x==0 and fill_plain==True:
-                            #up
-                            if(j>0):
-                                if(self.biome_list[i][j-1].type=="none"):
-                                    self.biome=Biomes(0)
-                                    self.biome_list[i][j-1]=self.biome
-                            #down
-                            if(j<BIOME_SIZE-1):
-                                if (self.biome_list[i][j+1].type=="none"):
-                                    self.biome = Biomes(0)
-                                    self.biome_list[i][j + 1] = self.biome
-                            #left
-                            if(i>0):
-                                if (self.biome_list[i-1][j].type=="none"):
-                                    self.biome = Biomes(0)
-                                    self.biome_list[i-1][j] = self.biome
-                            #right
-                            if(i<BIOME_SIZE-1):
-                                if (self.biome_list[i+1][j].type=="none"):
-                                    self.biome = Biomes(0)
-                                    self.biome_list[i+1][j] = self.biome
-                            #fill_plain=False
-                        #expand mountain
-                        if self.biome_list[i][j].type=="mountain" and x==1 and fill_mountain==True:
-                            #up
-                            if (j>0):
-                                if(self.biome_list[i][j-1].type=="none"):
-                                    self.biome=Biomes(1)
-                                    self.biome_list[i][j-1]=self.biome
-                            #down
-                            if (j < BIOME_SIZE-1):
-                                if (self.biome_list[i][j+1].type=="none"):
-                                    self.biome = Biomes(1)
-                                    self.biome_list[i][j + 1] = self.biome
-                            #left
-                            if (i > 0):
-                                if (self.biome_list[i-1][j].type=="none"):
-                                    self.biome = Biomes(1)
-                                    self.biome_list[i-1][j] = self.biome
-                            #right
-                            if (i < BIOME_SIZE-1):
-                                if (self.biome_list[i+1][j].type=="none"):
-                                    self.biome = Biomes(1)
-                                    self.biome_list[i+1][j] = self.biome
-                            #fill_mountain=False
-                        #expand desert
-                        if self.biome_list[i][j].type=="desert" and x==2 and fill_desert==True:
-                            #up
-                            if (j > 0):
-                                if(self.biome_list[i][j-1].type=="none"):
-                                    self.biome=Biomes(2)
-                                    self.biome_list[i][j-1]=self.biome
-                            #down
-                            if (j < BIOME_SIZE-1):
-                                if (j < BIOME_SIZE and self.biome_list[i][j+1].type=="none"):
-                                    self.biome = Biomes(2)
-                                    self.biome_list[i][j + 1] = self.biome
-                            #left
-                            if (i > 0):
-                                if (self.biome_list[i-1][j].type=="none"):
-                                    self.biome = Biomes(2)
-                                    self.biome_list[i-1][j] = self.biome
-                            #right
-                            if (i < BIOME_SIZE-1):
-                                if (self.biome_list[i+1][j].type=="none"):
-                                    self.biome = Biomes(2)
-                                    self.biome_list[i+1][j] = self.biome
-                            #fill_desert=False
-                print()
-            #allow fill to occur again
-            fill_plain = True
-            fill_mountain = True
-            fill_desert = True
-
+            i=random.randint(0,BIOME_SIZE-1)
+            j=random.randint(0,BIOME_SIZE-1)
+            if self.biome_list[i][j].type=="plain" and fill_plain==True:
+                #up
+                if(j>0):
+                    if(self.biome_list[i][j-1].type=="none"):
+                        self.biome=Biomes(0)
+                        self.biome_list[i][j-1]=self.biome
+                #down
+                if(j<BIOME_SIZE-1):
+                    if (self.biome_list[i][j+1].type=="none"):
+                        self.biome = Biomes(0)
+                        self.biome_list[i][j + 1] = self.biome
+                #left
+                if(i>0):
+                    if (self.biome_list[i-1][j].type=="none"):
+                        self.biome = Biomes(0)
+                        self.biome_list[i-1][j] = self.biome
+                #right
+                if(i<BIOME_SIZE-1):
+                    if (self.biome_list[i+1][j].type=="none"):
+                        self.biome = Biomes(0)
+                        self.biome_list[i+1][j] = self.biome
+                fill_plain=False
+            #expand mountain
+            if self.biome_list[i][j].type=="mountain" and fill_mountain==True:
+                #up
+                if (j>0):
+                    if(self.biome_list[i][j-1].type=="none"):
+                        self.biome=Biomes(1)
+                        self.biome_list[i][j-1]=self.biome
+                #down
+                if (j < BIOME_SIZE-1):
+                    if (self.biome_list[i][j+1].type=="none"):
+                        self.biome = Biomes(1)
+                        self.biome_list[i][j + 1] = self.biome
+                #left
+                if (i > 0):
+                    if (self.biome_list[i-1][j].type=="none"):
+                        self.biome = Biomes(1)
+                        self.biome_list[i-1][j] = self.biome
+                #right
+                if (i < BIOME_SIZE-1):
+                    if (self.biome_list[i+1][j].type=="none"):
+                        self.biome = Biomes(1)
+                        self.biome_list[i+1][j] = self.biome
+                fill_mountain=False
+            #expand desert
+            if self.biome_list[i][j].type=="desert" and fill_desert==True:
+                #up
+                if (j > 0):
+                    if(self.biome_list[i][j-1].type=="none"):
+                        self.biome=Biomes(2)
+                        self.biome_list[i][j-1]=self.biome
+                #down
+                if (j < BIOME_SIZE-1):
+                    if (j < BIOME_SIZE and self.biome_list[i][j+1].type=="none"):
+                        self.biome = Biomes(2)
+                        self.biome_list[i][j + 1] = self.biome
+                #left
+                if (i > 0):
+                    if (self.biome_list[i-1][j].type=="none"):
+                        self.biome = Biomes(2)
+                        self.biome_list[i-1][j] = self.biome
+                #right
+                if (i < BIOME_SIZE-1):
+                    if (self.biome_list[i+1][j].type=="none"):
+                        self.biome = Biomes(2)
+                        self.biome_list[i+1][j] = self.biome
+                fill_desert=False
+            #allow them to be filled after all have done a fill
+            if(fill_plain==False and fill_desert==False and fill_mountain==False):
+                fill_plain = True
+                fill_mountain = True
+                fill_desert = True
             is_filled=self.check_biome_fill()
-            print(is_filled)
         # set center location for biomes
         for i in range(BIOME_SIZE):
             for j in range(BIOME_SIZE):
-                self.biome_list[i][j].center_x = (i+1)*BIOME_SCALING*100 + 30
-                self.biome_list[i][j].center_y = (j+1)*BIOME_SCALING*100 + 30
+                self.biome_list[i][j].center_x = (i+1)*BIOME_SCALING*100 + 20
+                self.biome_list[i][j].center_y = (j+1)*BIOME_SCALING*100 + 20
         #add all biomes to biome sprite list
         for i in range(BIOME_SIZE):
             for j in range(BIOME_SIZE):
