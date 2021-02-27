@@ -3,7 +3,6 @@
 from main import *
 
 BIOME_SCALING = 1
-UPDATES_PER_FRAME=5
 
 #pictures are 100x100
 BIOME_LENGTH=100
