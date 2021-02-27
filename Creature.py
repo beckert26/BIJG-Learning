@@ -9,8 +9,8 @@ RIGHT_FACING = 1
 LEFT_FACING = 0
 
 #pictures are 27x14
-CREATURE_WIDTH=27
-CREATURE_HEIGHT=14
+CREATURE_WIDTH=27*CHARACTER_SCALING
+CREATURE_HEIGHT=14*CHARACTER_SCALING
 
 #loads two textures on reverse and on normal for left and right animations
 def load_texture_pair(filename):
@@ -22,7 +22,7 @@ def load_texture_pair(filename):
         arcade.load_texture(filename, flipped_horizontally=True)
     ]
 
-class CreatureCharacter(arcade.Sprite):
+class Creature(arcade.Sprite):
     def __init__(self):
         super().__init__()
 
