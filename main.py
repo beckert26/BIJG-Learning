@@ -93,8 +93,23 @@ class MyGame(arcade.Window):
             g=random.randint(0,255)
             b=random.randint(0,255)
             self.creature._set_color([r,g,b])
-            self.creature.center_x=random.randint(0,WORLD_LENGTH-(CREATURE_WIDTH*4))
-            self.creature.center_y=random.randint(0,WORLD_LENGTH-(CREATURE_HEIGHT*4))
+            #check overlap
+            can_spawn=False
+            failed=False
+            counter=0
+            while(can_spawn==False):
+                counter+=1
+                creature_x = random.randint(0, WORLD_LENGTH - (CREATURE_WIDTH * 4))
+                creature_y = random.randint(0, WORLD_LENGTH - (CREATURE_HEIGHT * 4))
+                for creature in self.creature_list:
+                    if (creature.center_x-CREATURE_WIDTH*2 <= creature_x and creature_x <= creature.center_x+CREATURE_WIDTH*2
+                            and creature.center_y-CREATURE_HEIGHT*2 <= creature_y and creature_y <= creature.center_y+CREATURE_HEIGHT*2 ):
+                        failed=True
+                if(failed==False):
+                    can_spawn=True
+                failed=False
+            self.creature.center_x=creature_x
+            self.creature.center_y=creature_y
             self.creature_list.append(self.creature)
 
         self.setup_biomes()
