@@ -8,6 +8,10 @@ UPDATES_PER_FRAME=5
 RIGHT_FACING = 1
 LEFT_FACING = 0
 
+#pictures are 27x14
+CREATURE_WIDTH=27
+CREATURE_HEIGHT=14
+
 #loads two textures on reverse and on normal for left and right animations
 def load_texture_pair(filename):
     """
@@ -75,15 +79,15 @@ class CreatureCharacter(arcade.Sprite):
             self.texture = self.idle_texture_pair[self.character_face_direction]
             return
 
-        #change state based on position as test
-        if(self.center_x<=SCREEN_WIDTH/2 and self.center_y<=SCREEN_HEIGHT/2):
-            self.state=="walking"
-        elif(self.center_x>=SCREEN_WIDTH/2 and self.center_y<=SCREEN_HEIGHT/2):
-            self.state="attacking"
-        elif(self.center_x<=SCREEN_WIDTH/2 and self.center_y>=SCREEN_HEIGHT/2):
-            self.state="damaged"
-        else:
-            self.state="dying"
+        # #change state based on position as test
+        # if(self.center_x<=SCREEN_WIDTH/2 and self.center_y<=SCREEN_HEIGHT/2):
+        #     self.state=="walking"
+        # elif(self.center_x>=SCREEN_WIDTH/2 and self.center_y<=SCREEN_HEIGHT/2):
+        #     self.state="attacking"
+        # elif(self.center_x<=SCREEN_WIDTH/2 and self.center_y>=SCREEN_HEIGHT/2):
+        #     self.state="damaged"
+        # else:
+        #     self.state="dying"
 
         #walking animation
         if(self.state=="walking"):

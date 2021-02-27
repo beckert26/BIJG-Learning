@@ -5,9 +5,13 @@ from main import *
 BIOME_SCALING = 1
 UPDATES_PER_FRAME=5
 
+#pictures are 100x100
+BIOME_LENGTH=100
+
 class Biomes(arcade.Sprite):
     def __init__(self, biome):
         super().__init__()
+
         self.type="none"
 
         self.scale=BIOME_SCALING
