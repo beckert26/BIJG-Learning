@@ -38,7 +38,7 @@ CREATURES_TO_SPAWN=100
 MOVEMENT_SPEED = 3
 
 #food spawn RATE bigger means less smaller means more
-FOOD_SPAWN_RATE = 100
+FOOD_SPAWN_RATE = 10
 
 class MyGame(arcade.Window):
     """
@@ -293,8 +293,8 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        # for i in range(CREATURES_TO_SPAWN):
-        #     self.move_creature(self.creature_list[i])
+        for i in range(CREATURES_TO_SPAWN):
+            self.move_creature(self.creature_list[i])
 
 
         self.creature_list.update()
@@ -330,6 +330,28 @@ class MyGame(arcade.Window):
         #spawn food
         self.spawn_food()
     def spawn_food(self):
+        for biome in self.biome_sprite_list:
+            x = random.randint(1,math.floor((FOOD_SPAWN_RATE*BIOME_SIZE*BIOME_SIZE)/biome.food_spawn))
+            if(x==1):
+                self.food=Food()
+                can_spawn = False
+                failed = False
+                while(can_spawn == False):
+                    food_x = random.randint(biome.center_x - math.floor(BIOME_LENGTH/2), biome.center_x + math.floor(BIOME_LENGTH/2))
+                    food_y = random.randint(biome.center_y - math.floor(BIOME_LENGTH/2), biome.center_y + math.floor(BIOME_LENGTH/2))
+                    for food in self.food_list:
+                        if (
+                                food.center_x - FOOD_WIDTH <= food_x and food_x <= food.center_x + FOOD_WIDTH
+                                and food.center_y - FOOD_HEIGHT <= food_y and food_y <= food.center_y + FOOD_HEIGHT):
+                            failed = True
+                    if (failed == False):
+                        can_spawn = True
+                    failed = False
+                self.food.center_x = food_x
+                self.food.center_y = food_y
+                self.food_list.append(self.food)
+
+        """
         #% chance of spawning food every tick
         x=random.randint(1,FOOD_SPAWN_RATE)
         if(x==1):
@@ -351,22 +373,22 @@ class MyGame(arcade.Window):
             self.food.center_x = food_x
             self.food.center_y = food_y
             self.food_list.append(self.food)
-
+            """
 
     def move_creature(self, creature):
         x=random.randint(0,3)
         if(x==0):
-            if(creature.center_y<SCREEN_HEIGHT):
-                creature.change_y = MOVEMENT_SPEED
+            if(creature.center_y<WORLD_LENGTH):
+                creature.change_y = MOVEMENT_SPEED*creature.speed_mod
         elif(x==1):
             if(creature.center_y>0):
-                creature.change_y = -MOVEMENT_SPEED
+                creature.change_y = -MOVEMENT_SPEED*creature.speed_mod
         elif(x==2):
             if (creature.center_x > 0):
-                creature.change_x = -MOVEMENT_SPEED
+                creature.change_x = -MOVEMENT_SPEED*creature.speed_mod
         else:
-            if (creature.center_x < SCREEN_WIDTH):
-                creature.change_x = MOVEMENT_SPEED
+            if (creature.center_x < WORLD_LENGTH):
+                creature.change_x = MOVEMENT_SPEED*creature.speed_mod
     def on_key_press(self, key, key_modifiers):
         """
         Called whenever a key on the keyboard is pressed.

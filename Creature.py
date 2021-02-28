@@ -28,7 +28,7 @@ class Creature(arcade.Sprite):
 
         self.cur_texture=0
 
-
+        self.speed_mod = 1.0
 
         self.character_face_direction = RIGHT_FACING
 
