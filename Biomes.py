@@ -13,6 +13,7 @@ class Biomes(arcade.Sprite):
         super().__init__()
 
         self.type="none"
+        self.biome = biome
         self.food_spawn=1.0
         self.scale=BIOME_SCALING
 

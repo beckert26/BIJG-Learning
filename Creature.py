@@ -3,6 +3,9 @@ from main import *
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
+CREATURE_SIGHT = 75
+CREATURE_UPKEEP = 100
+CREATURE_DRAIN = 0.02
 
 # Constants used to track if the player is facing left or right
 RIGHT_FACING = 1
@@ -28,7 +31,15 @@ class Creature(arcade.Sprite):
 
         self.cur_texture=0
 
+        self.biome_speed_mod = [1.0,0.5,0.1]
         self.speed_mod = 1.0
+        self.target = None
+        self.max_food = 100
+        self.fullness = 50
+        self.sight_mod = 1.0
+        self.food_upkeep = 0
+        self.prev_target = None
+        self.prev_target2 = None
 
         self.character_face_direction = RIGHT_FACING
 
@@ -65,6 +76,23 @@ class Creature(arcade.Sprite):
         for i in range(6):
             texture= arcade.load_texture_pair(f"sprites/damage/frame_{i}_delay-0.1s.gif")
             self.damaged_textures.append(texture)
+        self.set_upkeep()
+
+    def set_upkeep(self):
+        average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
+        self.food_upkeep = ((self.max_food * self.speed_mod * self.sight_mod * average_biome_speed/CREATURE_UPKEEP) + CREATURE_DRAIN)/30
+
+    def upkeep(self):
+        self.fullness -= self.food_upkeep
+        #print(self.fullness)
+        if self.fullness < 0:
+            self.kill()
+
+    def feed(self):
+        if(self.fullness+10 <= self.max_food):
+            self.fullness += 10
+        else:
+            self.fullness = self.max_food
 
     def update_animation(self, delta_time: float = 1/60):
 
