@@ -5,7 +5,7 @@ CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
 CREATURE_SIGHT = 75
 CREATURE_UPKEEP = 100
-CREATURE_DRAIN = 0.02
+CREATURE_DRAIN = 0.1
 
 # Constants used to track if the player is facing left or right
 RIGHT_FACING = 1
