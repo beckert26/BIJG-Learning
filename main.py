@@ -449,21 +449,25 @@ class MyGame(arcade.Window):
 
         if(creature.target):
             biome = arcade.get_sprites_at_point(creature.position,self.biome_sprite_list)
-            if(biome):
-                direct = self.get_target_direction(creature, creature.target)
+            direct = self.get_target_direction(creature, creature.target)
+            if (biome):
                 creature.change_x = MOVEMENT_SPEED * creature.speed_mod * creature.biome_speed_mod[biome[0].biome] * direct[0]
                 creature.change_y = MOVEMENT_SPEED * creature.speed_mod * creature.biome_speed_mod[biome[0].biome] * direct[1]
-                eat_list = arcade.check_for_collision_with_list(creature, self.food_list)
-                for food in eat_list:
-                    if(creature.target == food):
-                        creature.target = None
-                        for creature in self.creature_list:
-                            if creature.target == food:
-                                creature.target = None
-                    food.kill()
-                    creature.feed()
-                    if(creature.fullness==creature.max_food):
-                        self.breed(creature)
+            else:
+                creature.change_x = MOVEMENT_SPEED * creature.speed_mod * direct[0]
+                creature.change_y = MOVEMENT_SPEED * creature.speed_mod * direct[1]
+            eat_list = arcade.check_for_collision_with_list(creature, self.food_list)
+            for food in eat_list:
+                if(creature.target == food):
+                    creature.target = None
+                    for creature in self.creature_list:
+                        if creature.target == food:
+                            creature.target = None
+                food.kill()
+                creature.feed()
+                if(creature.fullness==creature.max_food):
+                    self.breed(creature)
+
 
         """
         #target = self.get_nearest_food(creature)
