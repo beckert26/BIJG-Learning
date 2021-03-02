@@ -25,7 +25,7 @@ UPDATES_PER_FRAME=5
 
 
 #viewport modifiers
-VIEW_SPEED=5
+VIEW_SPEED=10
 ZOOM_SPEED_Y = (SCREEN_HEIGHT*.01)
 ZOOM_SPEED_X = (SCREEN_WIDTH*.01)
 
@@ -295,6 +295,9 @@ class MyGame(arcade.Window):
         self.creature_list.draw()
         self.food_list.draw()
 
+        for creature in self.creature_list:
+            creature.draw_health_bar()
+
         # Call draw() on all your sprite lists below
 
     def on_update(self, delta_time):
@@ -555,14 +558,14 @@ class MyGame(arcade.Window):
         For a full list of keys, see:
         http://arcade.academy/arcade.key.html
         """
-        if key == arcade.key.UP:
-            self.creature.change_y = MOVEMENT_SPEED
-        elif key == arcade.key.DOWN:
-            self.creature.change_y = -MOVEMENT_SPEED
-        elif key == arcade.key.LEFT:
-            self.creature.change_x = -MOVEMENT_SPEED
-        elif key == arcade.key.RIGHT:
-            self.creature.change_x = MOVEMENT_SPEED
+        if key == arcade.key.UP or key==arcade.key.W:
+            self.view_change="up"
+        elif key == arcade.key.DOWN or key==arcade.key.S:
+            self.view_change="down"
+        elif key == arcade.key.LEFT or key==arcade.key.A:
+            self.view_change="left"
+        elif key == arcade.key.RIGHT or key==arcade.key.D:
+            self.view_change="right"
         #zoom in and out when -/= key hit
         if( key == arcade.key.MINUS):
             self.view_zoom="zoom_out"
@@ -573,10 +576,14 @@ class MyGame(arcade.Window):
         """
         Called whenever the user lets off a previously pressed key.
         """
-        if key == arcade.key.UP or key == arcade.key.DOWN:
-            self.creature.change_y = 0
-        elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
-            self.creature.change_x = 0
+        if key == arcade.key.UP or key == arcade.key.W:
+            self.view_change = "none"
+        elif key == arcade.key.DOWN or key == arcade.key.S:
+            self.view_change = "none"
+        elif key == arcade.key.LEFT or key == arcade.key.A:
+            self.view_change = "none"
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
+            self.view_change = "none"
         elif (key == arcade.key.MINUS or key == arcade.key.EQUAL):
             self.view_zoom="none"
 
