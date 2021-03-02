@@ -11,6 +11,7 @@ import arcade
 import os
 import random
 import math
+import numpy
 from Creature import *
 from Biomes import *
 from Food import *
@@ -24,7 +25,7 @@ UPDATES_PER_FRAME=5
 
 
 #viewport modifiers
-VIEW_SPEED=5
+VIEW_SPEED=10
 ZOOM_SPEED_Y = (SCREEN_HEIGHT*.01)
 ZOOM_SPEED_X = (SCREEN_WIDTH*.01)
 
@@ -38,7 +39,7 @@ CREATURES_TO_SPAWN=100
 MOVEMENT_SPEED = 3
 
 #food spawn RATE bigger means less smaller means more
-FOOD_SPAWN_RATE = 100
+FOOD_SPAWN_RATE = 10
 
 class MyGame(arcade.Window):
     """
@@ -61,9 +62,14 @@ class MyGame(arcade.Window):
         # If you have sprite lists, you should create them here,
         # and set them to None
         #view port
-        # center viewpoint
-        self.view_change="none"
+        #zoom controls
         self.view_zoom="none"
+        #camera controls
+        self.hold_up=False
+        self.hold_down=False
+        self.hold_left=False
+        self.hold_right=False
+        # center viewpoint
         self.view_left=(WORLD_LENGTH-SCREEN_WIDTH)/2
         self.view_right=(WORLD_LENGTH - SCREEN_WIDTH)/2 + SCREEN_WIDTH
         self.view_down=(WORLD_LENGTH - SCREEN_HEIGHT)/2
@@ -78,7 +84,7 @@ class MyGame(arcade.Window):
         self.biome=Biomes(-1)
 
         #biome list initialize to biome size
-        self.biome_sprite_list = arcade.SpriteList()
+        self.biome_sprite_list = arcade.SpriteList(use_spatial_hash=True, is_static=True)
         self.biome_list=[[self.biome for i in range(BIOME_SIZE)] for j in range(BIOME_SIZE)]
 
         # set up food list
@@ -97,11 +103,19 @@ class MyGame(arcade.Window):
         #add creatures
         for i in range(CREATURES_TO_SPAWN):
             self.creature = Creature()
+            self.creature.max_food = random.randint(10,200)
+            self.creature.speed_mod = random.randint(10,200)/100
+            self.creature.biome_speed_mod = [random.randint(10,200)/100 for i in range(3)]
+            self.creature.fullness = self.creature.max_food/2
+            self.creature.sight_mod = random.randint(10,200)/100
+            self.creature.set_upkeep()
+
             #random color
             r=random.randint(0,255)
             g=random.randint(0,255)
             b=random.randint(0,255)
             self.creature._set_color([r,g,b])
+
             #check overlap
             can_spawn=False
             failed=False
@@ -118,6 +132,7 @@ class MyGame(arcade.Window):
             self.creature.center_x=creature_x
             self.creature.center_y=creature_y
             self.creature_list.append(self.creature)
+
         #set up world
         self.setup_biomes()
 
@@ -285,6 +300,9 @@ class MyGame(arcade.Window):
         self.creature_list.draw()
         self.food_list.draw()
 
+        for creature in self.creature_list:
+            creature.draw_health_bar()
+
         # Call draw() on all your sprite lists below
 
     def on_update(self, delta_time):
@@ -293,26 +311,26 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        # for i in range(CREATURES_TO_SPAWN):
-        #     self.move_creature(self.creature_list[i])
+        #spawn food
+        self.spawn_food()
+
 
 
         self.creature_list.update()
 
         self.creature_list.update_animation()
-        #view port
-        if (self.view_change=="left" and self.view_left>-500):
-            self.view_left -= VIEW_SPEED
-            self.view_right -= VIEW_SPEED
-        if (self.view_change=="right" and self.view_right<WORLD_LENGTH+500):
-            self.view_left += VIEW_SPEED
-            self.view_right += VIEW_SPEED
-        if (self.view_change=="up" and self.view_up<WORLD_LENGTH+500):
+        if(self.hold_up==True and self.view_up<WORLD_LENGTH+500):
             self.view_up += VIEW_SPEED
             self.view_down += VIEW_SPEED
-        if (self.view_change=="down" and self.view_down>-500):
+        if(self.hold_down==True and self.view_down>-500):
             self.view_up -= VIEW_SPEED
             self.view_down -= VIEW_SPEED
+        if(self.hold_left==True and self.view_left>-500):
+            self.view_left -= VIEW_SPEED
+            self.view_right -= VIEW_SPEED
+        if(self.hold_right==True and self.view_right<WORLD_LENGTH+500):
+            self.view_left += VIEW_SPEED
+            self.view_right += VIEW_SPEED
         #zoom out
         if(self.view_zoom=="zoom_out" and self.view_up-self.view_down<=WORLD_LENGTH*1.3):
             self.view_up += ZOOM_SPEED_Y
@@ -327,9 +345,37 @@ class MyGame(arcade.Window):
             self.view_left += ZOOM_SPEED_X
         arcade.set_viewport(self.view_left,self.view_right, self.view_down, self.view_up)
 
-        #spawn food
-        self.spawn_food()
+
+        for creature in self.creature_list:
+            self.move_creature(creature)
+            creature.upkeep()
+
+
+
     def spawn_food(self):
+        for biome in self.biome_sprite_list:
+            x = random.randint(1,math.floor((FOOD_SPAWN_RATE*BIOME_SIZE*BIOME_SIZE)/biome.food_spawn))
+            if(x==1):
+                self.food=Food()
+                can_spawn = False
+                failed = False
+                while(can_spawn == False):
+                    food_x = random.randint(biome.center_x - math.floor(BIOME_LENGTH/2), biome.center_x + math.floor(BIOME_LENGTH/2))
+                    food_y = random.randint(biome.center_y - math.floor(BIOME_LENGTH/2), biome.center_y + math.floor(BIOME_LENGTH/2))
+                    for food in self.food_list:
+                        if (
+                                food.center_x - FOOD_WIDTH <= food_x and food_x <= food.center_x + FOOD_WIDTH
+                                and food.center_y - FOOD_HEIGHT <= food_y and food_y <= food.center_y + FOOD_HEIGHT):
+                            failed = True
+                    if (failed == False):
+                        can_spawn = True
+                    failed = False
+                self.food.center_x = food_x
+                self.food.center_y = food_y
+                self.food_list.append(self.food)
+
+
+        """
         #% chance of spawning food every tick
         x=random.randint(1,FOOD_SPAWN_RATE)
         if(x==1):
@@ -351,22 +397,164 @@ class MyGame(arcade.Window):
             self.food.center_x = food_x
             self.food.center_y = food_y
             self.food_list.append(self.food)
+            """
+    def breed(self, creature):
+        print("new creature")
+        self.creature = Creature()
+        self.creature.max_food = creature.max_food * 1.0 + float((random.randint(-50, 50)/2000))
+        self.creature.biome_speed_mod[0] = creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000))
+        self.creature.biome_speed_mod[1] = creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50, 50) / 2000))
+        self.creature.biome_speed_mod[2] = creature.biome_speed_mod[2] * 1.0 + float((random.randint(-50, 50) / 2000))
+        self.creature.sight_mod = creature.sight_mod * 1.0 + float((random.randint(-50, 50) / 2000))
+        self.creature.fullness = self.creature.max_food/2
+        self.creature.set_upkeep
+        # set color to parent color-------
+        color_tup = creature._get_color()
+        color = [color_tup[0], color_tup[1], color_tup[2]]
+        color[0] = math.floor(color[0] * 1.0 + float((random.randint(-50, 50) / 2000)))
+        color[1] = math.floor(color[1] * 1.0 + float((random.randint(-50, 50) / 2000)))
+        color[1] = math.floor(color[1] * 1.0 + float((random.randint(-50, 50) / 2000)))
+        for i in range(3):
+            if color[i] < 0:
+                color[i] = 0
+            elif color[i] > 255:
+                color[i] = 255
+        self.creature._set_color((color[0], color[1], color[2]))
 
+        # check overlap
+        can_spawn = False
+        failed = False
+        while (can_spawn == False):
+            creature_x = random.randint(0, WORLD_LENGTH - (CREATURE_WIDTH * 4))
+            creature_y = random.randint(0, WORLD_LENGTH - (CREATURE_HEIGHT * 4))
+            for creature in self.creature_list:
+                if (
+                        creature.center_x - CREATURE_WIDTH <= creature_x and creature_x <= creature.center_x + CREATURE_WIDTH
+                        and creature.center_y - CREATURE_HEIGHT <= creature_y and creature_y <= creature.center_y + CREATURE_HEIGHT):
+                    failed = True
+            if (failed == False):
+                can_spawn = True
+            failed = False
+        self.creature.center_x = creature_x
+        self.creature.center_y = creature_y
+        self.creature_list.append(self.creature)
+        self.creature_list.update()
+        self.creature_list.update_animation()
+        creature.fullness = creature.fullness/2
 
     def move_creature(self, creature):
-        x=random.randint(0,3)
+        target_tuple = arcade.get_closest_sprite(creature,self.food_list)
+        if(target_tuple):
+            target = target_tuple[0]
+            dist = target_tuple[1]
+            if(target and dist <= CREATURE_SIGHT * creature.sight_mod):
+                creature.target = target
+        if(not creature.target):
+            if(len(self.food_list)>0):
+                i = random.randint(0, len(self.food_list)-1)
+                creature.target = self.food_list[i]
+
+        if(creature.target):
+            biome = arcade.get_sprites_at_point(creature.position,self.biome_sprite_list)
+            direct = self.get_target_direction(creature, creature.target)
+            if (biome):
+                creature.change_x = MOVEMENT_SPEED * creature.speed_mod * creature.biome_speed_mod[biome[0].biome] * direct[0]
+                creature.change_y = MOVEMENT_SPEED * creature.speed_mod * creature.biome_speed_mod[biome[0].biome] * direct[1]
+            else:
+                creature.change_x = MOVEMENT_SPEED * creature.speed_mod * direct[0]
+                creature.change_y = MOVEMENT_SPEED * creature.speed_mod * direct[1]
+            eat_list = arcade.check_for_collision_with_list(creature, self.food_list)
+            for food in eat_list:
+                if(creature.target == food):
+                    creature.target = None
+                    for creature in self.creature_list:
+                        if creature.target == food:
+                            creature.target = None
+                food.kill()
+                creature.feed()
+                if(creature.fullness==creature.max_food):
+                    self.breed(creature)
+
+
+        """
+        #target = self.get_nearest_food(creature)
+        target=self.get_nearest_food(creature, creature.prev_target)
+        if(creature.target != target and target):
+            #print("test")
+            creature.prev_target2 = creature.prev_target
+            creature.prev_target = creature.target
+            creature.target = target
+        if(creature.target):
+            creature_collision = arcade.check_for_collision_with_list(creature,self.creature_list)
+            if(creature_collision):
+                creature.prev_target = creature.target
+                creature.target = self.get_nearest_food(creature, creature.prev_target)
+
+       # else:
+        #print(creature_collision)
+        #    target_tuple = arcade.get_closest_sprite(creature, self.food_list)
+        #    if(target_tuple):
+        #        creature.target = target_tuple[0]
+        if(creature.target):
+            direct = self.get_target_direction(creature, creature.target)
+            creature.change_x = MOVEMENT_SPEED * creature.speed_mod * direct[0]
+            creature.change_y = MOVEMENT_SPEED * creature.speed_mod * direct[1]
+            eat_list = arcade.check_for_collision_with_list(creature,self.food_list)
+            for food in eat_list:
+                food.kill()
+        """
+
+        """
         if(x==0):
-            if(creature.center_y<SCREEN_HEIGHT):
-                creature.change_y = MOVEMENT_SPEED
+            if(creature.center_y<WORLD_LENGTH):
+                creature.change_y = MOVEMENT_SPEED*creature.speed_mod
         elif(x==1):
             if(creature.center_y>0):
-                creature.change_y = -MOVEMENT_SPEED
+                creature.change_y = -MOVEMENT_SPEED*creature.speed_mod
         elif(x==2):
             if (creature.center_x > 0):
-                creature.change_x = -MOVEMENT_SPEED
+                creature.change_x = -MOVEMENT_SPEED*creature.speed_mod
         else:
-            if (creature.center_x < SCREEN_WIDTH):
-                creature.change_x = MOVEMENT_SPEED
+            if (creature.center_x < WORLD_LENGTH):
+                creature.change_x = MOVEMENT_SPEED*creature.speed_mod
+        """
+
+    def get_target_direction(self, creature: arcade.Sprite, target: arcade.Sprite):
+        x_dist = creature.center_x - target.center_x
+        y_dist = creature.center_y - target.center_y
+        return [numpy.sign(x_dist)*(-1), numpy.sign(y_dist)*(-1)]
+
+
+
+    def get_nearest_food(self, creature, previous = None):
+        if len(self.food_list) == 0:
+            return None
+
+        min_pos = 0
+        min_distance = arcade.get_distance_between_sprites(creature, self.food_list[min_pos])
+        for i in range(1, len(self.food_list)):
+            if(self.food_list[i]!=previous and self.food_list[i]!=creature.prev_target2):
+
+                distance = arcade.get_distance_between_sprites(creature, self.food_list[i])
+                if distance < min_distance:
+                    min_pos = i
+                    min_distance = distance
+
+        return self.food_list[min_pos]
+        """
+        smallest_dist = 99999.0
+        nearest = self.food_list[0]
+        for food in self.food_list:
+            if(food!=previous):
+                x_dist = math.fabs(creature.center_x - food.center_x)
+                y_dist = math.fabs(creature.center_y - food.center_y)
+                dist = math.sqrt(math.pow(x_dist,2) + math.pow(y_dist,2))
+                if(dist < smallest_dist):
+                    smallest_dist = dist
+                    nearest = food
+        return nearest
+        """
+
     def on_key_press(self, key, key_modifiers):
         """
         Called whenever a key on the keyboard is pressed.
@@ -374,14 +562,14 @@ class MyGame(arcade.Window):
         For a full list of keys, see:
         http://arcade.academy/arcade.key.html
         """
-        if key == arcade.key.UP:
-            self.creature.change_y = MOVEMENT_SPEED
-        elif key == arcade.key.DOWN:
-            self.creature.change_y = -MOVEMENT_SPEED
-        elif key == arcade.key.LEFT:
-            self.creature.change_x = -MOVEMENT_SPEED
-        elif key == arcade.key.RIGHT:
-            self.creature.change_x = MOVEMENT_SPEED
+        if key == arcade.key.UP or key==arcade.key.W:
+            self.hold_up=True
+        elif key == arcade.key.DOWN or key==arcade.key.S:
+            self.hold_down=True
+        elif key == arcade.key.LEFT or key==arcade.key.A:
+            self.hold_left=True
+        elif key == arcade.key.RIGHT or key==arcade.key.D:
+            self.hold_right=True
         #zoom in and out when -/= key hit
         if( key == arcade.key.MINUS):
             self.view_zoom="zoom_out"
@@ -392,27 +580,19 @@ class MyGame(arcade.Window):
         """
         Called whenever the user lets off a previously pressed key.
         """
-        if key == arcade.key.UP or key == arcade.key.DOWN:
-            self.creature.change_y = 0
-        elif key == arcade.key.LEFT or key == arcade.key.RIGHT:
-            self.creature.change_x = 0
-        elif (key == arcade.key.MINUS or key == arcade.key.EQUAL):
+        if (key == arcade.key.MINUS or key == arcade.key.EQUAL):
             self.view_zoom="none"
+        elif key == arcade.key.UP or key == arcade.key.W:
+            self.hold_up = False
+        elif key == arcade.key.DOWN or key == arcade.key.S:
+            self.hold_down = False
+        elif key == arcade.key.LEFT or key == arcade.key.A:
+            self.hold_left = False
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
+            self.hold_right = False
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
-        if(x>10 and x<100):
-            self.view_change="left"
-        elif(x>SCREEN_WIDTH-100 and x<SCREEN_WIDTH-10):
-            self.view_change="right"
-        elif(y>10 and y<100):
-            self.view_change="down"
-        elif(y>SCREEN_HEIGHT-100 and y<SCREEN_HEIGHT-10):
-            self.view_change="up"
-        else:
-            self.view_change="none"
-
-        if( delta_x<-10 or delta_x>10 or delta_y<-10 or delta_y>10):
-            self.view_change="none"
+        pass
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         """

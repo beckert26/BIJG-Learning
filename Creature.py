@@ -3,6 +3,9 @@ from main import *
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
+CREATURE_SIGHT = 75
+CREATURE_UPKEEP = 100
+CREATURE_DRAIN = 0.1
 
 # Constants used to track if the player is facing left or right
 RIGHT_FACING = 1
@@ -11,6 +14,13 @@ LEFT_FACING = 0
 #pictures are 27x14
 CREATURE_WIDTH=27*CHARACTER_SCALING
 CREATURE_HEIGHT=14*CHARACTER_SCALING
+
+FOODBAR_WIDTH = 25
+FOODBAR_HEIGHT = 3
+FOODBAR_OFFSET_Y = 3
+
+FOOD_NUMBER_OFFSET_X = -10
+FOOD_NUMBER_OFFSET_Y = -25
 
 #loads two textures on reverse and on normal for left and right animations
 def load_texture_pair(filename):
@@ -28,7 +38,15 @@ class Creature(arcade.Sprite):
 
         self.cur_texture=0
 
-
+        self.biome_speed_mod = [1.0,0.5,0.1]
+        self.speed_mod = 1.0
+        self.target = None
+        self.max_food = 100
+        self.fullness = 50
+        self.sight_mod = 1.0
+        self.food_upkeep = 0
+        self.prev_target = None
+        self.prev_target2 = None
 
         self.character_face_direction = RIGHT_FACING
 
@@ -45,16 +63,16 @@ class Creature(arcade.Sprite):
         self.damaged_textures = []
         self.dying_textures = []
         #walking
-        for i in range(6):
+        for i in range(7):
             texture= arcade.load_texture_pair(f"sprites/walk/frame_{i}_delay-0.1s.gif")
             self.walking_textures.append(texture)
 
         #attacking
-        for i in range(5):
+        for i in range(6):
             texture= arcade.load_texture_pair(f"sprites/attack/frame_{i}_delay-0.1s.gif")
             self.attacking_textures.append(texture)
         #dying
-        for i in range(15):
+        for i in range(16):
             if(i<10):
                 texture = arcade.load_texture_pair(f"sprites/die/frame_0{i}_delay-0.1s.gif")
             else:
@@ -62,9 +80,27 @@ class Creature(arcade.Sprite):
             self.dying_textures.append(texture)
 
         #damaged
-        for i in range(6):
+        for i in range(7):
             texture= arcade.load_texture_pair(f"sprites/damage/frame_{i}_delay-0.1s.gif")
             self.damaged_textures.append(texture)
+        self.set_upkeep()
+
+    def set_upkeep(self):
+        average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
+        self.food_upkeep = ((self.max_food * self.speed_mod * self.sight_mod * average_biome_speed/CREATURE_UPKEEP) + CREATURE_DRAIN)/30
+
+    def upkeep(self):
+        self.fullness -= self.food_upkeep
+        #print(self.fullness)
+        if self.fullness < 0:
+            self.state="dying"
+            self.speed_mod=0
+
+    def feed(self):
+        if(self.fullness+10 <= self.max_food):
+            self.fullness += 10
+        else:
+            self.fullness = self.max_food
 
     def update_animation(self, delta_time: float = 1/60):
 
@@ -77,22 +113,11 @@ class Creature(arcade.Sprite):
         #Idle animation
         if self.change_x == 0 and self.change_y == 0:
             self.texture = self.idle_texture_pair[self.character_face_direction]
-            return
-
-        # #change state based on position as test
-        # if(self.center_x<=SCREEN_WIDTH/2 and self.center_y<=SCREEN_HEIGHT/2):
-        #     self.state=="walking"
-        # elif(self.center_x>=SCREEN_WIDTH/2 and self.center_y<=SCREEN_HEIGHT/2):
-        #     self.state="attacking"
-        # elif(self.center_x<=SCREEN_WIDTH/2 and self.center_y>=SCREEN_HEIGHT/2):
-        #     self.state="damaged"
-        # else:
-        #     self.state="dying"
 
         #walking animation
         if(self.state=="walking"):
             self.cur_texture+=1
-            if(self.cur_texture>5*UPDATES_PER_FRAME):
+            if(self.cur_texture>6*UPDATES_PER_FRAME):
                 self.cur_texture=0
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction
@@ -100,7 +125,7 @@ class Creature(arcade.Sprite):
         #attacking
         elif(self.state=="attacking"):
             self.cur_texture += 1
-            if (self.cur_texture > 4 * UPDATES_PER_FRAME):
+            if (self.cur_texture > 5 * UPDATES_PER_FRAME):
                 self.cur_texture = 0
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction
@@ -108,7 +133,7 @@ class Creature(arcade.Sprite):
         #damaged
         elif(self.state=="damaged"):
             self.cur_texture += 1
-            if (self.cur_texture > 5 * UPDATES_PER_FRAME):
+            if (self.cur_texture > 6 * UPDATES_PER_FRAME):
                 self.cur_texture = 0
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction
@@ -116,8 +141,28 @@ class Creature(arcade.Sprite):
         #dying
         elif(self.state=="dying"):
             self.cur_texture += 1
-            if (self.cur_texture > 14 * UPDATES_PER_FRAME):
-                self.cur_texture = 0
+            if (self.cur_texture > 15 * UPDATES_PER_FRAME):
+                self.kill()
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction
             self.texture = self.dying_textures[frame][direction]
+
+    def draw_health_bar(self):
+        """ Draw the health bar """
+
+        # Draw the 'unhealthy' background
+        if self.fullness < self.max_food:
+            arcade.draw_rectangle_filled(center_x=self.center_x,
+                                         center_y=self.center_y + FOODBAR_OFFSET_Y,
+                                         width=FOODBAR_WIDTH,
+                                         height=3,
+                                         color=arcade.color.WHITE)
+
+        # Calculate width based on health
+        food_width = FOODBAR_WIDTH * (self.fullness / self.max_food)
+
+        arcade.draw_rectangle_filled(center_x=self.center_x - 0.5 * (FOODBAR_WIDTH - food_width),
+                                     center_y=self.center_y + FOODBAR_OFFSET_Y,
+                                     width=food_width,
+                                     height=FOODBAR_HEIGHT,
+                                     color=arcade.color.BROWN)
