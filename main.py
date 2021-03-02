@@ -62,9 +62,14 @@ class MyGame(arcade.Window):
         # If you have sprite lists, you should create them here,
         # and set them to None
         #view port
-        # center viewpoint
-        self.view_change="none"
+        #zoom controls
         self.view_zoom="none"
+        #camera controls
+        self.hold_up=False
+        self.hold_down=False
+        self.hold_left=False
+        self.hold_right=False
+        # center viewpoint
         self.view_left=(WORLD_LENGTH-SCREEN_WIDTH)/2
         self.view_right=(WORLD_LENGTH - SCREEN_WIDTH)/2 + SCREEN_WIDTH
         self.view_down=(WORLD_LENGTH - SCREEN_HEIGHT)/2
@@ -314,19 +319,18 @@ class MyGame(arcade.Window):
         self.creature_list.update()
 
         self.creature_list.update_animation()
-        #view port
-        if (self.view_change=="left" and self.view_left>-500):
-            self.view_left -= VIEW_SPEED
-            self.view_right -= VIEW_SPEED
-        if (self.view_change=="right" and self.view_right<WORLD_LENGTH+500):
-            self.view_left += VIEW_SPEED
-            self.view_right += VIEW_SPEED
-        if (self.view_change=="up" and self.view_up<WORLD_LENGTH+500):
+        if(self.hold_up==True and self.view_up<WORLD_LENGTH+500):
             self.view_up += VIEW_SPEED
             self.view_down += VIEW_SPEED
-        if (self.view_change=="down" and self.view_down>-500):
+        if(self.hold_down==True and self.view_down>-500):
             self.view_up -= VIEW_SPEED
             self.view_down -= VIEW_SPEED
+        if(self.hold_left==True and self.view_left>-500):
+            self.view_left -= VIEW_SPEED
+            self.view_right -= VIEW_SPEED
+        if(self.hold_right==True and self.view_right<WORLD_LENGTH+500):
+            self.view_left += VIEW_SPEED
+            self.view_right += VIEW_SPEED
         #zoom out
         if(self.view_zoom=="zoom_out" and self.view_up-self.view_down<=WORLD_LENGTH*1.3):
             self.view_up += ZOOM_SPEED_Y
@@ -559,13 +563,13 @@ class MyGame(arcade.Window):
         http://arcade.academy/arcade.key.html
         """
         if key == arcade.key.UP or key==arcade.key.W:
-            self.view_change="up"
+            self.hold_up=True
         elif key == arcade.key.DOWN or key==arcade.key.S:
-            self.view_change="down"
+            self.hold_down=True
         elif key == arcade.key.LEFT or key==arcade.key.A:
-            self.view_change="left"
+            self.hold_left=True
         elif key == arcade.key.RIGHT or key==arcade.key.D:
-            self.view_change="right"
+            self.hold_right=True
         #zoom in and out when -/= key hit
         if( key == arcade.key.MINUS):
             self.view_zoom="zoom_out"
@@ -576,31 +580,19 @@ class MyGame(arcade.Window):
         """
         Called whenever the user lets off a previously pressed key.
         """
-        if key == arcade.key.UP or key == arcade.key.W:
-            self.view_change = "none"
-        elif key == arcade.key.DOWN or key == arcade.key.S:
-            self.view_change = "none"
-        elif key == arcade.key.LEFT or key == arcade.key.A:
-            self.view_change = "none"
-        elif key == arcade.key.RIGHT or key == arcade.key.D:
-            self.view_change = "none"
-        elif (key == arcade.key.MINUS or key == arcade.key.EQUAL):
+        if (key == arcade.key.MINUS or key == arcade.key.EQUAL):
             self.view_zoom="none"
+        elif key == arcade.key.UP or key == arcade.key.W:
+            self.hold_up = False
+        elif key == arcade.key.DOWN or key == arcade.key.S:
+            self.hold_down = False
+        elif key == arcade.key.LEFT or key == arcade.key.A:
+            self.hold_left = False
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
+            self.hold_right = False
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
-        if(x>10 and x<100):
-            self.view_change="left"
-        elif(x>SCREEN_WIDTH-100 and x<SCREEN_WIDTH-10):
-            self.view_change="right"
-        elif(y>10 and y<100):
-            self.view_change="down"
-        elif(y>SCREEN_HEIGHT-100 and y<SCREEN_HEIGHT-10):
-            self.view_change="up"
-        else:
-            self.view_change="none"
-
-        if( delta_x<-10 or delta_x>10 or delta_y<-10 or delta_y>10):
-            self.view_change="none"
+        pass
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         """
