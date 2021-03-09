@@ -1,5 +1,6 @@
-import arcade
+
 from main import *
+
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
@@ -33,7 +34,7 @@ def load_texture_pair(filename):
     ]
 
 class Creature(arcade.Sprite):
-    def __init__(self):
+    def __init__(self, id):
         super().__init__()
 
         self.cur_texture=0
@@ -47,6 +48,7 @@ class Creature(arcade.Sprite):
         self.food_upkeep = 0
         self.prev_target = None
         self.prev_target2 = None
+        self.id=id
 
         self.character_face_direction = RIGHT_FACING
 
@@ -89,9 +91,9 @@ class Creature(arcade.Sprite):
         average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
         self.food_upkeep = ((self.max_food * self.speed_mod * self.sight_mod * average_biome_speed/CREATURE_UPKEEP) + CREATURE_DRAIN)/30
 
+
     def upkeep(self):
         self.fullness -= self.food_upkeep
-        #print(self.fullness)
         if self.fullness < 0:
             self.state="dying"
             self.speed_mod=0
@@ -103,7 +105,6 @@ class Creature(arcade.Sprite):
             self.fullness = self.max_food
 
     def update_animation(self, delta_time: float = 1/60):
-
         # Figure out if we need to flip face left or right
         if self.change_x < 0 and self.character_face_direction == RIGHT_FACING:
             self.character_face_direction = LEFT_FACING
@@ -142,6 +143,7 @@ class Creature(arcade.Sprite):
         elif(self.state=="dying"):
             self.cur_texture += 1
             if (self.cur_texture > 15 * UPDATES_PER_FRAME):
+
                 self.kill()
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction
