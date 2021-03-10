@@ -33,7 +33,7 @@ ZOOM_SPEED_X = (SCREEN_WIDTH*.01)
 BIOME_SIZE=25
 WORLD_LENGTH=BIOME_LENGTH*BIOME_SIZE
 
-CREATURES_TO_SPAWN=100
+CREATURES_TO_SPAWN=2
 
 #Testing movement speed
 MOVEMENT_SPEED = 3
@@ -83,6 +83,9 @@ class MyGame(arcade.Window):
         #font size
         self.font_size=20
 
+        #index for which creature to display
+        self.creature_display_stats_index=-1
+
         # hold creature list
         self.creature_list = None
         #track creature id's that have died
@@ -104,6 +107,7 @@ class MyGame(arcade.Window):
         self.food=None
 
     def setup(self):
+        """ Set up the game variables. Call to re-start the game. """
         """ Set up the game variables. Call to re-start the game. """
 
         #Sprite List
@@ -284,8 +288,8 @@ class MyGame(arcade.Window):
         for i in range(BIOME_SIZE):
             for j in range(BIOME_SIZE):
                 #attempted to manually center might need to be readjusted if map size changes
-                self.biome_list[i][j].center_x = (i)*BIOME_SCALING*100
-                self.biome_list[i][j].center_y = (j)*BIOME_SCALING*100
+                self.biome_list[i][j].center_x = (i)*BIOME_SCALING*BIOME_LENGTH
+                self.biome_list[i][j].center_y = (j)*BIOME_SCALING*BIOME_LENGTH
         #add all biomes to biome sprite list
         for i in range(BIOME_SIZE):
             for j in range(BIOME_SIZE):
@@ -312,8 +316,10 @@ class MyGame(arcade.Window):
 
         for creature in self.creature_list:
             creature.draw_health_bar()
+            creature.draw_id(self.font_size)
 
         self.display_message_center()
+        self.display_creature_stats()
 
         # Call draw() on all your sprite lists below
 
@@ -363,11 +369,8 @@ class MyGame(arcade.Window):
             creature.upkeep()
             #check for death
             if (creature.state == "dying" and creature.id not in self.dead_creatures_list):
-                message_center.append("creature " + str(creature.id) + " has died")
+                message_center.append("Creature " + str(creature.id) + " has died")
                 self.dead_creatures_list.append(creature.id)
-
-
-
 
 
     def spawn_food(self):
@@ -417,9 +420,7 @@ class MyGame(arcade.Window):
             self.food_list.append(self.food)
             """
     def breed(self, creature):
-        global message_center
-        print("new creature")
-        message_center.append("new creature added by " + str(creature.id))
+        message_center.append("Creature " + str(creature.id) + " has reproduced.")
         self.creature = Creature(len(self.creature_list)+1)
         self.creature.max_food = creature.max_food * 1.0 + float((random.randint(-50, 50)/2000))
         self.creature.biome_speed_mod[0] = creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000))
@@ -581,11 +582,11 @@ class MyGame(arcade.Window):
         scaling=0
 
         #font size
-        segments=(WORLD_LENGTH*1.3+500)/16
+        segments=(WORLD_LENGTH*1.3+500)/12
         size=self.view_up-self.view_down
-        for i in range(1,17):
+        for i in range(1,13):
             if(size<=segments*i):
-                self.font_size=i*6
+                self.font_size=i*7
                 break
 
         if(len(message_center)<10):
@@ -595,6 +596,13 @@ class MyGame(arcade.Window):
         for i in range(len(message_center)-1, size, -1):
             arcade.draw_text(message_center[i], self.view_left+self.font_size, self.view_down+(scaling*self.font_size), arcade.color.BLACK, self.font_size)
             scaling+=1
+
+    def display_creature_stats(self):
+        i=self.creature_display_stats_index
+        if(i!=-1):
+            print(str(self.creature_list[i].id))
+            print(i)
+
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -645,8 +653,15 @@ class MyGame(arcade.Window):
         """
         Called when a user releases a mouse button.
         """
-        pass
 
+        for i in range(0, len(self.creature_list)):
+            # click on creature
+            #adjust x and y for view port
+            x_adjusted=(x/SCREEN_WIDTH)*(self.view_right-self.view_left)+self.view_left
+            y_adjusted=(y/SCREEN_HEIGHT)*(self.view_up-self.view_down)+self.view_down
+            if (self.creature_list[i].center_x-CREATURE_WIDTH <= x_adjusted <= self.creature_list[i].center_x+CREATURE_WIDTH
+                    and self.creature_list[i].center_y - CREATURE_HEIGHT <= y_adjusted <= self.creature_list[i].center_y + CREATURE_HEIGHT):
+                self.creature_display_stats_index = i
 
 def main():
     """ Main method """

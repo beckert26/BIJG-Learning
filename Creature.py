@@ -168,3 +168,6 @@ class Creature(arcade.Sprite):
                                      width=food_width,
                                      height=FOODBAR_HEIGHT,
                                      color=arcade.color.BROWN)
+    def draw_id(self, font_size):
+        arcade.draw_text(str(self.id), self.center_x-10,
+                         self.center_y - CREATURE_HEIGHT*2, arcade.color.BLACK, 12)
