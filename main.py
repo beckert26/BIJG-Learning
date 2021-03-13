@@ -33,7 +33,7 @@ ZOOM_SPEED_X = (SCREEN_WIDTH*.01)
 BIOME_SIZE=25
 WORLD_LENGTH=BIOME_LENGTH*BIOME_SIZE
 
-CREATURES_TO_SPAWN=2
+CREATURES_TO_SPAWN=75
 
 #Testing movement speed
 MOVEMENT_SPEED = 3
@@ -56,7 +56,7 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
-        arcade.set_background_color(arcade.color.AMAZON)
+        arcade.set_background_color(arcade.color.BRIGHT_NAVY_BLUE)
 
         self.updates=0
 
@@ -82,6 +82,11 @@ class MyGame(arcade.Window):
 
         #font size
         self.font_size=20
+
+        self.update_rate=1/60
+
+        #total creatures generated
+        self.total_creatures_generated=CREATURES_TO_SPAWN
 
         #index for which creature to display
         self.creature_display_stats_index=-1
@@ -421,7 +426,8 @@ class MyGame(arcade.Window):
             """
     def breed(self, creature):
         message_center.append("Creature " + str(creature.id) + " has reproduced.")
-        self.creature = Creature(len(self.creature_list)+1)
+        self.total_creatures_generated += 1
+        self.creature = Creature(self.total_creatures_generated)
         self.creature.max_food = creature.max_food * 1.0 + float((random.randint(-50, 50)/2000))
         self.creature.biome_speed_mod[0] = creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000))
         self.creature.biome_speed_mod[1] = creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50, 50) / 2000))
@@ -586,9 +592,14 @@ class MyGame(arcade.Window):
         size=self.view_up-self.view_down
         for i in range(1,13):
             if(size<=segments*i):
-                self.font_size=i*7
+                self.font_size=i*5
                 break
-
+        # draw white box around message center
+        arcade.draw_rectangle_filled(center_x=self.view_left+20,
+                                     center_y=self.view_down,
+                                     width=self.font_size*35,
+                                     height=self.font_size*20,
+                                     color=arcade.color.WHITE)
         if(len(message_center)<10):
             size=-1
         else:
@@ -599,7 +610,7 @@ class MyGame(arcade.Window):
 
     def display_creature_stats(self):
         i=self.creature_display_stats_index
-        if(i!=-1):
+        if(i!=-1 and i<len(self.creature_list)):
             print(str(self.creature_list[i].id))
             print(i)
 
@@ -639,6 +650,15 @@ class MyGame(arcade.Window):
             self.hold_left = False
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.hold_right = False
+        elif key == arcade.key.P:
+            #pause/play
+            if self.update_rate==1/60:
+                self.update_rate=0
+                self.set_update_rate(self.update_rate)
+            else:
+                self.update_rate=1/60
+                self.set_update_rate(self.update_rate)
+
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
         pass
