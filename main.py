@@ -16,13 +16,13 @@ from Creature import *
 from Biomes import *
 from Food import *
 
+
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 SCREEN_TITLE = "BIJG Learning: Evolution Simulation"
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
-
 
 #viewport modifiers
 VIEW_SPEED=10
@@ -33,13 +33,16 @@ ZOOM_SPEED_X = (SCREEN_WIDTH*.01)
 BIOME_SIZE=25
 WORLD_LENGTH=BIOME_LENGTH*BIOME_SIZE
 
-CREATURES_TO_SPAWN=100
+CREATURES_TO_SPAWN=75
 
 #Testing movement speed
 MOVEMENT_SPEED = 3
 
 #food spawn RATE bigger means less smaller means more
 FOOD_SPAWN_RATE = 10
+
+#array to hold message center messages
+message_center=[]
 
 class MyGame(arcade.Window):
     """
@@ -53,7 +56,9 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
-        arcade.set_background_color(arcade.color.AMAZON)
+        arcade.set_background_color(arcade.color.BRIGHT_NAVY_BLUE)
+
+        self.updates=0
 
         #set directory
         file_path=os.path.dirname(os.path.abspath(__file__))
@@ -74,8 +79,22 @@ class MyGame(arcade.Window):
         self.view_right=(WORLD_LENGTH - SCREEN_WIDTH)/2 + SCREEN_WIDTH
         self.view_down=(WORLD_LENGTH - SCREEN_HEIGHT)/2
         self.view_up=(WORLD_LENGTH - SCREEN_HEIGHT)/2 + SCREEN_HEIGHT
+
+        #font size
+        self.font_size=20
+
+        self.update_rate=1/60
+
+        #total creatures generated
+        self.total_creatures_generated=CREATURES_TO_SPAWN
+
+        #index for which creature to display
+        self.creature_display_stats_index=-1
+
         # hold creature list
         self.creature_list = None
+        #track creature id's that have died
+        self.dead_creatures_list=[]
 
         #set up creature info
         self.creature = None
@@ -94,7 +113,7 @@ class MyGame(arcade.Window):
 
     def setup(self):
         """ Set up the game variables. Call to re-start the game. """
-        # Create your sprites and sprite lists here
+        """ Set up the game variables. Call to re-start the game. """
 
         #Sprite List
         self.creature_list=arcade.SpriteList()
@@ -102,7 +121,7 @@ class MyGame(arcade.Window):
 
         #add creatures
         for i in range(CREATURES_TO_SPAWN):
-            self.creature = Creature()
+            self.creature = Creature(i)
             self.creature.max_food = random.randint(10,200)
             self.creature.speed_mod = random.randint(10,200)/100
             self.creature.biome_speed_mod = [random.randint(10,200)/100 for i in range(3)]
@@ -274,8 +293,8 @@ class MyGame(arcade.Window):
         for i in range(BIOME_SIZE):
             for j in range(BIOME_SIZE):
                 #attempted to manually center might need to be readjusted if map size changes
-                self.biome_list[i][j].center_x = (i)*BIOME_SCALING*100
-                self.biome_list[i][j].center_y = (j)*BIOME_SCALING*100
+                self.biome_list[i][j].center_x = (i)*BIOME_SCALING*BIOME_LENGTH
+                self.biome_list[i][j].center_y = (j)*BIOME_SCALING*BIOME_LENGTH
         #add all biomes to biome sprite list
         for i in range(BIOME_SIZE):
             for j in range(BIOME_SIZE):
@@ -302,6 +321,10 @@ class MyGame(arcade.Window):
 
         for creature in self.creature_list:
             creature.draw_health_bar()
+            creature.draw_id(self.font_size)
+
+        self.display_message_center()
+        self.display_creature_stats()
 
         # Call draw() on all your sprite lists below
 
@@ -311,12 +334,12 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
+
         #spawn food
         self.spawn_food()
 
-
-
         self.creature_list.update()
+
 
         self.creature_list.update_animation()
         if(self.hold_up==True and self.view_up<WORLD_LENGTH+500):
@@ -349,7 +372,10 @@ class MyGame(arcade.Window):
         for creature in self.creature_list:
             self.move_creature(creature)
             creature.upkeep()
-
+            #check for death
+            if (creature.state == "dying" and creature.id not in self.dead_creatures_list):
+                message_center.append("Creature " + str(creature.id) + " has died")
+                self.dead_creatures_list.append(creature.id)
 
 
     def spawn_food(self):
@@ -399,8 +425,9 @@ class MyGame(arcade.Window):
             self.food_list.append(self.food)
             """
     def breed(self, creature):
-        print("new creature")
-        self.creature = Creature()
+        message_center.append("Creature " + str(creature.id) + " has reproduced.")
+        self.total_creatures_generated += 1
+        self.creature = Creature(self.total_creatures_generated)
         self.creature.max_food = creature.max_food * 1.0 + float((random.randint(-50, 50)/2000))
         self.creature.biome_speed_mod[0] = creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000))
         self.creature.biome_speed_mod[1] = creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50, 50) / 2000))
@@ -555,6 +582,39 @@ class MyGame(arcade.Window):
         return nearest
         """
 
+
+    def display_message_center(self):
+        global message_center
+        scaling=0
+
+        #font size
+        segments=(WORLD_LENGTH*1.3+500)/12
+        size=self.view_up-self.view_down
+        for i in range(1,13):
+            if(size<=segments*i):
+                self.font_size=i*5
+                break
+        # draw white box around message center
+        arcade.draw_rectangle_filled(center_x=self.view_left+20,
+                                     center_y=self.view_down,
+                                     width=self.font_size*35,
+                                     height=self.font_size*20,
+                                     color=arcade.color.WHITE)
+        if(len(message_center)<10):
+            size=-1
+        else:
+            size=len(message_center)-10
+        for i in range(len(message_center)-1, size, -1):
+            arcade.draw_text(message_center[i], self.view_left+self.font_size, self.view_down+(scaling*self.font_size), arcade.color.BLACK, self.font_size)
+            scaling+=1
+
+    def display_creature_stats(self):
+        i=self.creature_display_stats_index
+        if(i!=-1 and i<len(self.creature_list)):
+            print(str(self.creature_list[i].id))
+            print(i)
+
+
     def on_key_press(self, key, key_modifiers):
         """
         Called whenever a key on the keyboard is pressed.
@@ -590,6 +650,15 @@ class MyGame(arcade.Window):
             self.hold_left = False
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.hold_right = False
+        elif key == arcade.key.P:
+            #pause/play
+            if self.update_rate==1/60:
+                self.update_rate=0
+                self.set_update_rate(self.update_rate)
+            else:
+                self.update_rate=1/60
+                self.set_update_rate(self.update_rate)
+
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
         pass
@@ -604,8 +673,15 @@ class MyGame(arcade.Window):
         """
         Called when a user releases a mouse button.
         """
-        pass
 
+        for i in range(0, len(self.creature_list)):
+            # click on creature
+            #adjust x and y for view port
+            x_adjusted=(x/SCREEN_WIDTH)*(self.view_right-self.view_left)+self.view_left
+            y_adjusted=(y/SCREEN_HEIGHT)*(self.view_up-self.view_down)+self.view_down
+            if (self.creature_list[i].center_x-CREATURE_WIDTH <= x_adjusted <= self.creature_list[i].center_x+CREATURE_WIDTH
+                    and self.creature_list[i].center_y - CREATURE_HEIGHT <= y_adjusted <= self.creature_list[i].center_y + CREATURE_HEIGHT):
+                self.creature_display_stats_index = i
 
 def main():
     """ Main method """
