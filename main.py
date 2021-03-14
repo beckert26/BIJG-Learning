@@ -664,7 +664,7 @@ class MyGame(arcade.Window):
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
-            arcade.draw_text("Food Eaten: " + str(creature.num_food_eaten), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Food Consumed: " + str(creature.num_food_eaten), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
@@ -747,6 +747,7 @@ class MyGame(arcade.Window):
                     and self.creature_list[i].center_y - CREATURE_HEIGHT <= y_adjusted <= self.creature_list[i].center_y + CREATURE_HEIGHT):
                 self.creature_display_stats_index = i
                 self.new_creature_index=True
+
 
 def main():
     """ Main method """
