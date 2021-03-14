@@ -90,6 +90,7 @@ class MyGame(arcade.Window):
 
         #index for which creature to display
         self.creature_display_stats_index=-1
+        self.new_creature_index=False
 
         # hold creature list
         self.creature_list = None
@@ -98,6 +99,7 @@ class MyGame(arcade.Window):
 
         #set up creature info
         self.creature = None
+        self.creature_displayed=None
 
         #set up biome None biome
         self.biome=Biomes(-1)
@@ -426,6 +428,7 @@ class MyGame(arcade.Window):
             """
     def breed(self, creature):
         message_center.append("Creature " + str(creature.id) + " has reproduced.")
+        creature.num_reproduced+=1
         self.total_creatures_generated += 1
         self.creature = Creature(self.total_creatures_generated)
         self.creature.max_food = creature.max_food * 1.0 + float((random.randint(-50, 50)/2000))
@@ -588,12 +591,7 @@ class MyGame(arcade.Window):
         scaling=0
 
         #font size
-        segments=(WORLD_LENGTH*1.3+500)/12
-        size=self.view_up-self.view_down
-        for i in range(1,13):
-            if(size<=segments*i):
-                self.font_size=i*5
-                break
+        self.update_font_size()
         # draw white box around message center
         arcade.draw_rectangle_filled(center_x=self.view_left+20,
                                      center_y=self.view_down,
@@ -609,11 +607,77 @@ class MyGame(arcade.Window):
             scaling+=1
 
     def display_creature_stats(self):
+        #maintain same creature in display
         i=self.creature_display_stats_index
+        if self.creature_displayed!=None:
+            if self.new_creature_index:
+                self.creature_displayed=self.creature_list[i]
+        else:
+            self.creature_displayed=self.creature_list[i]
+        self.new_creature_index=False
+        scale=1
+        top_margin=self.font_size*5
         if(i!=-1 and i<len(self.creature_list)):
-            print(str(self.creature_list[i].id))
-            print(i)
+            creature=self.creature_displayed
+            # draw white box around message center
+            arcade.draw_rectangle_filled(center_x=self.view_right - self.font_size*7,
+                                         center_y=self.view_up-(self.font_size*8)-top_margin,
+                                         width=self.font_size * 13,
+                                         height=self.font_size * 18,
+                                         color=arcade.color.WHITE)
 
+            # font size
+
+            self.update_font_size()
+            # writetext to right side of screen
+            arcade.draw_text("Creature Information: ", self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale+=1
+            arcade.draw_text("-----------------------", self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size * 1.2)
+            scale += 1
+            arcade.draw_text("Creature id: " + str(creature.id), self.view_right-(self.font_size*12),
+                             self.view_up-(self.font_size*1.5*scale)-top_margin, arcade.color.BLACK, self.font_size)
+            scale+=1
+            arcade.draw_text("Speed: " + str(creature.speed_mod), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
+            scale += 1
+            arcade.draw_text("Food: " + str(int(round(creature.fullness,0)))+"/"+str(int(round(creature.max_food,0))), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
+            scale += 1
+            arcade.draw_text("Sight: " + str(round(creature.sight_mod,3)), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size*1.5  * scale)-top_margin, arcade.color.BLACK, self.font_size)
+            scale += 1
+            arcade.draw_text("Food Upkeep: " + str(int(round(creature.food_upkeep*100, 0)))+"%", self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size*1.5  * scale)-top_margin, arcade.color.BLACK, self.font_size)
+            scale += 1
+            arcade.draw_text("State: " + str(creature.state), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
+            scale += 1
+            arcade.draw_text("# Reproduced: " + str(creature.num_reproduced), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Total Kills: " + str(creature.num_kills), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Food Eaten: " + str(creature.num_food_eaten), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+
+
+
+    def update_font_size(self):
+        segments = (WORLD_LENGTH * 1.3 + 500) / 12
+        size = self.view_up - self.view_down
+        for i in range(1, 13):
+            if (size <= segments * i):
+                self.font_size = i * 5
+                break
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -682,6 +746,7 @@ class MyGame(arcade.Window):
             if (self.creature_list[i].center_x-CREATURE_WIDTH <= x_adjusted <= self.creature_list[i].center_x+CREATURE_WIDTH
                     and self.creature_list[i].center_y - CREATURE_HEIGHT <= y_adjusted <= self.creature_list[i].center_y + CREATURE_HEIGHT):
                 self.creature_display_stats_index = i
+                self.new_creature_index=True
 
 def main():
     """ Main method """
