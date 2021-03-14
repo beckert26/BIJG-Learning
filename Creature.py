@@ -56,6 +56,11 @@ class Creature(arcade.Sprite):
 
         self.state="walking"
 
+        #counting stats
+        self.num_reproduced=0
+        self.num_kills=0
+        self.num_food_eaten=0;
+
         #load sprite textures for idle
         self.idle_texture_pair=load_texture_pair(f"sprites/slimeIdle.gif")
 
@@ -103,7 +108,7 @@ class Creature(arcade.Sprite):
             self.fullness += 10
         else:
             self.fullness = self.max_food
-
+        self.num_food_eaten+=1
     def update_animation(self, delta_time: float = 1/60):
         # Figure out if we need to flip face left or right
         if self.change_x < 0 and self.character_face_direction == RIGHT_FACING:
