@@ -606,6 +606,9 @@ class MyGame(arcade.Window):
             arcade.draw_text(message_center[i], self.view_left+self.font_size, self.view_down+(scaling*self.font_size), arcade.color.BLACK, self.font_size)
             scaling+=1
 
+        #display total population in top left corner
+        arcade.draw_text("Total population: "+str(len(self.creature_list)), self.view_left+self.font_size, self.view_up-self.font_size*1.5, arcade.color.BLACK, self.font_size)
+
     def display_creature_stats(self):
         #maintain same creature in display
         i=self.creature_display_stats_index
