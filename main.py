@@ -15,6 +15,7 @@ import numpy
 from Creature import *
 from Biomes import *
 from Food import *
+import time
 
 
 SCREEN_WIDTH = 1280
@@ -85,8 +86,13 @@ class MyGame(arcade.Window):
 
         self.update_rate=1/60
 
+        #time stuff
+        self.total_runtime=0
+
         #total creatures generated
         self.total_creatures_generated=CREATURES_TO_SPAWN
+        # simulation statistics
+        self.total_kills = 0
 
         #index for which creature to display
         self.creature_display_stats_index=-1
@@ -113,9 +119,15 @@ class MyGame(arcade.Window):
         #set up food
         self.food=None
 
+
+
     def setup(self):
         """ Set up the game variables. Call to re-start the game. """
         """ Set up the game variables. Call to re-start the game. """
+
+        #set update rate to 60fps
+        self.set_update_rate(1/60)
+
 
         #Sprite List
         self.creature_list=arcade.SpriteList()
@@ -336,7 +348,6 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-
         #spawn food
         self.spawn_food()
 
@@ -378,6 +389,9 @@ class MyGame(arcade.Window):
             if (creature.state == "dying" and creature.id not in self.dead_creatures_list):
                 message_center.append("Creature " + str(creature.id) + " has died")
                 self.dead_creatures_list.append(creature.id)
+
+        #increment run time by 1/60
+        self.total_runtime+=delta_time
 
 
     def spawn_food(self):
@@ -606,8 +620,37 @@ class MyGame(arcade.Window):
             arcade.draw_text(message_center[i], self.view_left+self.font_size, self.view_down+(scaling*self.font_size), arcade.color.BLACK, self.font_size)
             scaling+=1
 
-        #display total population in top left corner
-        arcade.draw_text("Total population: "+str(len(self.creature_list)), self.view_left+self.font_size, self.view_up-self.font_size*1.5, arcade.color.BLACK, self.font_size)
+        #display simulation stats in bottom left corner
+        #draw white box in bottom right corner
+        arcade.draw_rectangle_filled(center_x=self.view_right - 20,
+                                     center_y=self.view_down,
+                                     width=self.font_size * 25,
+                                     height=self.font_size * 22,
+                                     color=arcade.color.WHITE)
+        scaling=0
+
+        arcade.draw_text("Total Runtime: " + self.convert_time(), self.view_right - self.font_size * 12,
+                         self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
+        scaling += 1
+        arcade.draw_text("Total Kills: " + str(self.total_kills), self.view_right - self.font_size * 12,
+                         self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
+        scaling += 1
+        arcade.draw_text("Total Deaths: " + str(self.total_creatures_generated - len(self.creature_list)),
+                         self.view_right - self.font_size * 12,
+                         self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
+        scaling += 1
+        arcade.draw_text("Current population: "+str(len(self.creature_list)), self.view_right-self.font_size*12, self.view_down+self.font_size*1.5*scaling, arcade.color.BLACK, self.font_size)
+        scaling+=1
+        arcade.draw_text("Total Creatures: " + str(self.total_creatures_generated),
+                         self.view_right - self.font_size * 12,
+                         self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
+        scaling += 1
+        arcade.draw_text("-----------------------------", self.view_right - self.font_size * 12,
+                         self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
+        scaling += 1
+        arcade.draw_text("Simulation Statistics:", self.view_right - self.font_size * 12,
+                         self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
+        scaling += 1
 
     def display_creature_stats(self):
         #maintain same creature in display
@@ -672,7 +715,14 @@ class MyGame(arcade.Window):
                              self.font_size)
             scale += 1
 
+    def convert_time(self):
+        seconds = self.total_runtime % (24 * 3600)
+        hour = self.total_runtime // 3600
+        seconds %= 3600
+        minutes = self.total_runtime // 60
+        seconds %= 60
 
+        return "%d:%02d:%02d" % (hour, minutes, seconds)
 
     def update_font_size(self):
         segments = (WORLD_LENGTH * 1.3 + 500) / 12
