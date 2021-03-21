@@ -102,6 +102,7 @@ class Creature(arcade.Sprite):
         if self.fullness < 0:
             self.state="dying"
             self.speed_mod=0
+            #self.kill()
 
     def feed(self):
         if(self.fullness+10 <= self.max_food):
@@ -148,7 +149,7 @@ class Creature(arcade.Sprite):
         elif(self.state=="dying"):
             self.cur_texture += 1
             if (self.cur_texture > 15 * UPDATES_PER_FRAME):
-
+                #self.cur_texture = 0
                 self.kill()
             frame = self.cur_texture // UPDATES_PER_FRAME
             direction = self.character_face_direction

@@ -511,9 +511,9 @@ class MyGame(arcade.Window):
             for food in eat_list:
                 if(creature.target == food):
                     creature.target = None
-                    for creature in self.creature_list:
-                        if creature.target == food:
-                            creature.target = None
+                    for c in self.creature_list:
+                        if c.target == food:
+                            c.target = None
                 food.kill()
                 creature.feed()
                 if(creature.fullness==creature.max_food):
