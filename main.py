@@ -348,11 +348,26 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        #spawn food
-        self.spawn_food()
+        for i in range(1):
+            #spawn food
+            self.spawn_food()
+            self.food_list.update()
+            self.creature_list.update()
 
-        self.creature_list.update()
 
+
+
+            for creature in self.creature_list:
+                self.move_creature(creature)
+                creature.upkeep()
+                #check for death
+                if (creature.state == "dying" and creature.id not in self.dead_creatures_list):
+                    message_center.append("Creature " + str(creature.id) + " has died")
+                    self.dead_creatures_list.append(creature.id)
+
+        #increment run time by 1/60
+            self.total_runtime+=delta_time
+            #self.total_runtime += 1
 
         self.creature_list.update_animation()
         if(self.hold_up==True and self.view_up<WORLD_LENGTH+500):
@@ -380,19 +395,6 @@ class MyGame(arcade.Window):
             self.view_right -= ZOOM_SPEED_X
             self.view_left += ZOOM_SPEED_X
         arcade.set_viewport(self.view_left,self.view_right, self.view_down, self.view_up)
-
-
-        for creature in self.creature_list:
-            self.move_creature(creature)
-            creature.upkeep()
-            #check for death
-            if (creature.state == "dying" and creature.id not in self.dead_creatures_list):
-                message_center.append("Creature " + str(creature.id) + " has died")
-                self.dead_creatures_list.append(creature.id)
-
-        #increment run time by 1/60
-        self.total_runtime+=delta_time
-
 
     def spawn_food(self):
         for biome in self.biome_sprite_list:
@@ -499,7 +501,8 @@ class MyGame(arcade.Window):
                 creature.target = self.food_list[i]
 
         if(creature.target):
-            biome = arcade.get_sprites_at_point(creature.position,self.biome_sprite_list)
+            #biome = arcade.get_sprites_at_point(creature.position,self.biome_sprite_list)
+            biome=self.biome_list[0]
             direct = self.get_target_direction(creature, creature.target)
             if (biome):
                 creature.change_x = MOVEMENT_SPEED * creature.speed_mod * creature.biome_speed_mod[biome[0].biome] * direct[0]
