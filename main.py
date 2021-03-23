@@ -87,7 +87,7 @@ class MyGame(arcade.Window):
         self.update_rate=1/60
 
         #time stuff
-        self.total_runtime=0
+        self.total_runtime=65000
 
         #total creatures generated
         self.total_creatures_generated=CREATURES_TO_SPAWN
@@ -719,13 +719,10 @@ class MyGame(arcade.Window):
             scale += 1
 
     def convert_time(self):
-        seconds = self.total_runtime % (24 * 3600)
-        hour = self.total_runtime // 3600
-        seconds %= 3600
-        minutes = self.total_runtime // 60
-        seconds %= 60
+        m, s = divmod(self.total_runtime, 60)
+        h, m = divmod(m, 60)
 
-        return "%d:%02d:%02d" % (hour, minutes, seconds)
+        return "%d:%02d:%02d" % (h, m, s)
 
     def update_font_size(self):
         segments = (WORLD_LENGTH * 1.3 + 500) / 12
