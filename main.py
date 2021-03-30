@@ -81,13 +81,18 @@ class MyGame(arcade.Window):
         self.view_down=(WORLD_LENGTH - SCREEN_HEIGHT)/2
         self.view_up=(WORLD_LENGTH - SCREEN_HEIGHT)/2 + SCREEN_HEIGHT
 
+        #controls simulation speed
+        self.simulation_speed=1
+
         #font size
         self.font_size=20
 
         self.update_rate=1/60
 
+        self.hide_ui=False
+
         #time stuff
-        self.total_runtime=65000
+        self.total_runtime=0
 
         #total creatures generated
         self.total_creatures_generated=CREATURES_TO_SPAWN
@@ -339,6 +344,7 @@ class MyGame(arcade.Window):
 
         self.display_message_center()
         self.display_creature_stats()
+        self.display_simulation_speed()
 
         # Call draw() on all your sprite lists below
 
@@ -348,7 +354,7 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        for i in range(1):
+        for i in range(self.simulation_speed):
             #spawn food
             self.spawn_food()
             self.food_list.update()
@@ -602,6 +608,50 @@ class MyGame(arcade.Window):
         return nearest
         """
 
+    def display_simulation_speed(self):
+        self.update_font_size()
+        top_margin = self.font_size * 17
+        scale=1
+        if self.hide_ui==False:
+            #display controls
+            #box
+            arcade.draw_rectangle_filled(center_x=self.view_left + self.font_size * 6,
+                                         center_y=self.view_up - (self.font_size * 6) - top_margin,
+                                         width=self.font_size * 19,
+                                         height=self.font_size * 13,
+                                         color=arcade.color.WHITE)
+            arcade.draw_text("Simulation Controls: ", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale+=1
+            arcade.draw_text("---------------------", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size*1.2)
+            scale+=1
+            arcade.draw_text("Zoom (in/out): =/- ", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Camera: WASD/Arrow Keys ", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Play/Pause: P/K ", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Speed up: L ", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Slow down: J ", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Hide Controls: H", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+
 
     def display_message_center(self):
         global message_center
@@ -623,7 +673,12 @@ class MyGame(arcade.Window):
             arcade.draw_text(message_center[i], self.view_left+self.font_size, self.view_down+(scaling*self.font_size), arcade.color.BLACK, self.font_size)
             scaling+=1
 
-        #display simulation stats in bottom left corner
+        # display simulation speed
+        scaling=11
+        arcade.draw_text("Simulation Speed: " + str(self.simulation_speed), self.view_left + self.font_size,
+                         self.view_down+(scaling*self.font_size), arcade.color.BLACK,
+                         self.font_size)
+        #display simulation stats in bottom right corner
         #draw white box in bottom right corner
         arcade.draw_rectangle_filled(center_x=self.view_right - 20,
                                      center_y=self.view_down,
@@ -767,7 +822,7 @@ class MyGame(arcade.Window):
             self.hold_left = False
         elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.hold_right = False
-        elif key == arcade.key.P:
+        elif key == arcade.key.P or key==arcade.key.K:
             #pause/play
             if self.update_rate==1/60:
                 self.update_rate=0
@@ -775,6 +830,18 @@ class MyGame(arcade.Window):
             else:
                 self.update_rate=1/60
                 self.set_update_rate(self.update_rate)
+        elif key == arcade.key.L:
+            if self.simulation_speed<10:
+                self.simulation_speed+=1
+        elif key == arcade.key.J:
+            if self.simulation_speed>1:
+                self.simulation_speed-=1
+        elif key == arcade.key.H:
+            if self.hide_ui==False:
+                self.hide_ui=True
+            else:
+                self.hide_ui=False
+
 
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
