@@ -15,7 +15,10 @@ import numpy
 from Creature import *
 from Biomes import *
 from Food import *
-import time
+
+import arcade.gui
+from arcade.gui import UIFlatButton, UIGhostFlatButton, UIManager
+
 
 
 SCREEN_WIDTH = 1280
@@ -45,7 +48,16 @@ FOOD_SPAWN_RATE = 10
 #array to hold message center messages
 message_center=[]
 
-class MyGame(arcade.Window):
+#window
+window=None
+
+#inputs
+population_input=None
+mutation_input=None
+reproduction_input=None
+food_input=None
+
+class MyGame(arcade.View):
     """
     Main application class.
 
@@ -54,10 +66,10 @@ class MyGame(arcade.Window):
     with your own code. Don't leave 'pass' in this program.
     """
 
-    def __init__(self, width, height, title):
-        super().__init__(width, height, title)
+    def __init__(self):
+        super().__init__()
 
-        arcade.set_background_color(arcade.color.BRIGHT_NAVY_BLUE)
+
 
         self.updates=0
 
@@ -65,8 +77,6 @@ class MyGame(arcade.Window):
         file_path=os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
 
-        # If you have sprite lists, you should create them here,
-        # and set them to None
         #view port
         #zoom controls
         self.view_zoom="none"
@@ -104,7 +114,7 @@ class MyGame(arcade.Window):
         self.new_creature_index=False
 
         # hold creature list
-        self.creature_list = None
+        self.creature_list = arcade.SpriteList()
         #track creature id's that have died
         self.dead_creatures_list=[]
 
@@ -120,65 +130,61 @@ class MyGame(arcade.Window):
         self.biome_list=[[self.biome for i in range(BIOME_SIZE)] for j in range(BIOME_SIZE)]
 
         # set up food list
-        self.food_list = None
+        self.food_list = arcade.SpriteList()
         #set up food
         self.food=None
 
 
 
-    def setup(self):
         """ Set up the game variables. Call to re-start the game. """
         """ Set up the game variables. Call to re-start the game. """
 
-        #set update rate to 60fps
-        self.set_update_rate(1/60)
-
-
-        #Sprite List
-        self.creature_list=arcade.SpriteList()
-        self.food_list=arcade.SpriteList()
-
-        #add creatures
+        # add creatures
         for i in range(CREATURES_TO_SPAWN):
             self.creature = Creature(i)
-            self.creature.max_food = random.randint(10,200)
-            self.creature.speed_mod = random.randint(10,200)/100
-            self.creature.biome_speed_mod = [random.randint(10,200)/100 for i in range(3)]
-            self.creature.fullness = self.creature.max_food/2
-            self.creature.sight_mod = random.randint(10,200)/100
+            self.creature.max_food = random.randint(10, 200)
+            self.creature.speed_mod = random.randint(10, 200) / 100
+            self.creature.biome_speed_mod = [random.randint(10, 200) / 100 for i in range(3)]
+            self.creature.fullness = self.creature.max_food / 2
+            self.creature.sight_mod = random.randint(10, 200) / 100
             self.creature.set_upkeep()
 
-            #random color
-            r=random.randint(0,255)
-            g=random.randint(0,255)
-            b=random.randint(0,255)
-            self.creature._set_color([r,g,b])
+            # random color
+            r = random.randint(0, 255)
+            g = random.randint(0, 255)
+            b = random.randint(0, 255)
+            self.creature._set_color([r, g, b])
 
-            #check overlap
-            can_spawn=False
-            failed=False
-            while(can_spawn==False):
+            # check overlap
+            can_spawn = False
+            failed = False
+            while (can_spawn == False):
                 creature_x = random.randint(0, WORLD_LENGTH - (CREATURE_WIDTH * 4))
                 creature_y = random.randint(0, WORLD_LENGTH - (CREATURE_HEIGHT * 4))
                 for creature in self.creature_list:
-                    if (creature.center_x-CREATURE_WIDTH <= creature_x and creature_x <= creature.center_x+CREATURE_WIDTH
-                            and creature.center_y-CREATURE_HEIGHT <= creature_y and creature_y <= creature.center_y+CREATURE_HEIGHT ):
-                        failed=True
-                if(failed==False):
-                    can_spawn=True
-                failed=False
-            self.creature.center_x=creature_x
-            self.creature.center_y=creature_y
+                    if (
+                            creature.center_x - CREATURE_WIDTH <= creature_x and creature_x <= creature.center_x + CREATURE_WIDTH
+                            and creature.center_y - CREATURE_HEIGHT <= creature_y and creature_y <= creature.center_y + CREATURE_HEIGHT):
+                        failed = True
+                if (failed == False):
+                    can_spawn = True
+                failed = False
+            self.creature.center_x = creature_x
+            self.creature.center_y = creature_y
             self.creature_list.append(self.creature)
 
-        #set up world
+        # set up world
         self.setup_biomes()
 
-        #food test
-        self.food=Food()
-        self.food.center_x=400
-        self.food.center_y=400
+        # food test
+        self.food = Food()
+        self.food.center_x = 400
+        self.food.center_y = 400
         self.food_list.append(self.food)
+
+    def on_show_view(self):
+        """ Called once when view is activated. """
+        arcade.set_background_color(arcade.color.BRIGHT_NAVY_BLUE)
 
     def setup_biomes(self):
         # add biomes
@@ -328,7 +334,6 @@ class MyGame(arcade.Window):
         """
         Render the screen.
         """
-
         # This command should happen before we start drawing. It will clear
         # the screen to the background color, and erase what we drew last frame.
         arcade.start_render()
@@ -868,13 +873,198 @@ class MyGame(arcade.Window):
                 self.creature_display_stats_index = i
                 self.new_creature_index=True
 
+# main menu
+class MainMenuView(arcade.View):
+    def __init__(self):
+        """ Set up this view """
+        super().__init__()
+
+        self.ui_manager = UIManager()
+
+    def on_show(self):
+        arcade.set_background_color(arcade.color.BRIGHT_NAVY_BLUE)
+        self.setup()
+
+    def setup(self):
+        self.ui_manager.purge_ui_elements()
+        new = NewFlatButton('New Simulation', center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 1.7, width=250, height=50)
+        new.set_style_attrs(
+            font_color=arcade.color.WHITE,
+            font_color_hover=arcade.color.WHITE,
+            font_color_press=arcade.color.WHITE,
+            bg_color=(105, 105, 105),
+            bg_color_hover=(128,128,128),
+            bg_color_press=(0,0,0),
+            border_color=(0,0,0),
+            border_color_hover=arcade.color.BLACK,
+            border_color_press=arcade.color.BLACK
+        )
+        self.ui_manager.add_ui_element(new)
+        load = LoadFlatButton('Load Simulation', center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 3, width=250,
+                           height=50)
+        load.set_style_attrs(
+            font_color=arcade.color.WHITE,
+            font_color_hover=arcade.color.WHITE,
+            font_color_press=arcade.color.WHITE,
+            bg_color=(105, 105, 105),
+            bg_color_hover=(128, 128, 128),
+            bg_color_press=(0, 0, 0),
+            border_color=(0, 0, 0),
+            border_color_hover=arcade.color.BLACK,
+            border_color_press=arcade.color.BLACK
+        )
+        self.ui_manager.add_ui_element(load)
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_text("BIJG Learning: Evolution Simulation", SCREEN_WIDTH/2, SCREEN_HEIGHT/1.3,
+                         arcade.color.BLACK, font_size=50, anchor_x="center")
+
+    def on_hide_view(self):
+        self.ui_manager.unregister_handlers()
+
+#handles on click for new
+class NewFlatButton(arcade.gui.UIFlatButton):
+
+    #go to modifer page
+    def on_click(self):
+        global window
+        #for starting game window
+        # game_view = MyGame()
+        # window.show_view(game_view)
+        modification_view=ModificationMenuView()
+        window.show_view(modification_view)
+
+#handles on click for load
+class LoadFlatButton(arcade.gui.UIFlatButton):
+    """
+    To capture a button click, subclass the button and override on_click.
+    """
+    def on_click(self):
+        """ Called when user lets off button """
+        global window
+        game_view = MyGame()
+        window.show_view(game_view)
+
+
+#modification view
+class ModificationMenuView(arcade.View):
+    def __init__(self):
+        """ Set up this view """
+        super().__init__()
+
+        self.ui_manager = UIManager()
+
+    def on_show(self):
+        arcade.set_background_color(arcade.color.BRIGHT_NAVY_BLUE)
+        self.setup()
+
+    def setup(self):
+        global population_input
+        global mutation_input
+        global reproduction_input
+        global food_input
+
+        self.ui_manager.purge_ui_elements()
+
+        #population input
+        population_input = arcade.gui.UIInputBox(
+            center_x=SCREEN_WIDTH/1.5,
+            center_y=SCREEN_HEIGHT/1.5,
+            width=300
+        )
+        population_input.text = '75'
+        population_input.cursor_index = len(population_input.text)
+        self.ui_manager.add_ui_element(population_input)
+
+        # mutation input
+        mutation_input = arcade.gui.UIInputBox(
+            center_x=SCREEN_WIDTH / 1.5 ,
+            center_y=SCREEN_HEIGHT / 1.5 - 100,
+            width=300
+        )
+        mutation_input.text = '1'
+        mutation_input.cursor_index = len(mutation_input.text)
+        self.ui_manager.add_ui_element(mutation_input)
+
+        # reproduction input
+        reproduction_input = arcade.gui.UIInputBox(
+            center_x=SCREEN_WIDTH / 1.5,
+            center_y=SCREEN_HEIGHT / 1.5 - 200,
+            width=300
+        )
+        reproduction_input.text = '1'
+        reproduction_input.cursor_index = len(reproduction_input.text)
+        self.ui_manager.add_ui_element(reproduction_input)
+
+        # food input
+        food_input = arcade.gui.UIInputBox(
+            center_x=SCREEN_WIDTH / 1.5,
+            center_y=SCREEN_HEIGHT / 1.5 - 300,
+            width=300
+        )
+        food_input.text = '1'
+        food_input.cursor_index = len(food_input.text)
+        self.ui_manager.add_ui_element(food_input)
+
+        new = StartFlatButton('Start Simulation', center_x=SCREEN_WIDTH / 2, center_y=50, width=250, height=50)
+        new.set_style_attrs(
+            font_color=arcade.color.WHITE,
+            font_color_hover=arcade.color.WHITE,
+            font_color_press=arcade.color.WHITE,
+            bg_color=(105, 105, 105),
+            bg_color_hover=(128,128,128),
+            bg_color_press=(0,0,0),
+            border_color=(0,0,0),
+            border_color_hover=arcade.color.BLACK,
+            border_color_press=arcade.color.BLACK
+        )
+        self.ui_manager.add_ui_element(new)
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_text("Simulation Modifications", SCREEN_WIDTH/2, SCREEN_HEIGHT/1.2,
+                         arcade.color.BLACK, font_size=50, anchor_x="center")
+
+        arcade.draw_text("Starting Population:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55,
+                         arcade.color.BLACK, font_size=25, anchor_x="center")
+        arcade.draw_text("Mutation Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 100,
+                         arcade.color.BLACK, font_size=25, anchor_x="center")
+        arcade.draw_text("Reproduction Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 -200,
+                         arcade.color.BLACK, font_size=25, anchor_x="center")
+        arcade.draw_text("Food Distribution:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 300,
+                         arcade.color.BLACK, font_size=25, anchor_x="center")
+
+    def on_hide_view(self):
+        self.ui_manager.unregister_handlers()
+
+#handles on click for start
+class StartFlatButton(arcade.gui.UIFlatButton):
+
+    #go to game page
+    def on_click(self):
+        global CREATURES_TO_SPAWN
+        #values from input field
+        print(population_input.text)
+        print(mutation_input.text)
+        print(reproduction_input.text)
+        print(food_input.text)
+
+        CREATURES_TO_SPAWN=int(population_input.text)
+
+        global window
+        game_view = MyGame()
+        window.show_view(game_view)
 
 def main():
     """ Main method """
-    game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    game.setup()
+    global window
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Main Menu")
+    main_menu_view=MainMenuView()
+    window.show_view(main_menu_view)
     arcade.run()
 
 
 if __name__ == "__main__":
     main()
+

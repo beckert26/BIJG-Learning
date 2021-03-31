@@ -1,6 +1,7 @@
 
-from main import *
+#from main import *
 
+import arcade
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
@@ -22,6 +23,11 @@ FOODBAR_OFFSET_Y = 3
 
 FOOD_NUMBER_OFFSET_X = -10
 FOOD_NUMBER_OFFSET_Y = -25
+
+BIOME_SIZE=25
+BIOME_LENGTH=100
+WORLD_LENGTH=BIOME_LENGTH*BIOME_SIZE
+
 
 #loads two textures on reverse and on normal for left and right animations
 def load_texture_pair(filename):
