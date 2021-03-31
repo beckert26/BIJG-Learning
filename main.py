@@ -138,13 +138,6 @@ class MyGame(arcade.View):
 
         """ Set up the game variables. Call to re-start the game. """
         """ Set up the game variables. Call to re-start the game. """
-        # set update rate to 60fps
-
-        #self.set_update_rate(1 / 60)
-
-        # #Sprite List
-        # self.creature_list=arcade.SpriteList()
-        # self.food_list=arcade.SpriteList()
 
         # add creatures
         for i in range(CREATURES_TO_SPAWN):
@@ -192,59 +185,6 @@ class MyGame(arcade.View):
     def on_show_view(self):
         """ Called once when view is activated. """
         arcade.set_background_color(arcade.color.BRIGHT_NAVY_BLUE)
-
-    # def setup(self):
-    #     """ Set up the game variables. Call to re-start the game. """
-    #     """ Set up the game variables. Call to re-start the game. """
-    #     #set update rate to 60fps
-    #
-    #     self.set_update_rate(1 / 60)
-    #
-    #     # #Sprite List
-    #     # self.creature_list=arcade.SpriteList()
-    #     # self.food_list=arcade.SpriteList()
-    #
-    #     #add creatures
-    #     for i in range(CREATURES_TO_SPAWN):
-    #         self.creature = Creature(i)
-    #         self.creature.max_food = random.randint(10,200)
-    #         self.creature.speed_mod = random.randint(10,200)/100
-    #         self.creature.biome_speed_mod = [random.randint(10,200)/100 for i in range(3)]
-    #         self.creature.fullness = self.creature.max_food/2
-    #         self.creature.sight_mod = random.randint(10,200)/100
-    #         self.creature.set_upkeep()
-    #
-    #         #random color
-    #         r=random.randint(0,255)
-    #         g=random.randint(0,255)
-    #         b=random.randint(0,255)
-    #         self.creature._set_color([r,g,b])
-    #
-    #         #check overlap
-    #         can_spawn=False
-    #         failed=False
-    #         while(can_spawn==False):
-    #             creature_x = random.randint(0, WORLD_LENGTH - (CREATURE_WIDTH * 4))
-    #             creature_y = random.randint(0, WORLD_LENGTH - (CREATURE_HEIGHT * 4))
-    #             for creature in self.creature_list:
-    #                 if (creature.center_x-CREATURE_WIDTH <= creature_x and creature_x <= creature.center_x+CREATURE_WIDTH
-    #                         and creature.center_y-CREATURE_HEIGHT <= creature_y and creature_y <= creature.center_y+CREATURE_HEIGHT ):
-    #                     failed=True
-    #             if(failed==False):
-    #                 can_spawn=True
-    #             failed=False
-    #         self.creature.center_x=creature_x
-    #         self.creature.center_y=creature_y
-    #         self.creature_list.append(self.creature)
-    #
-    #     #set up world
-    #     self.setup_biomes()
-    #
-    #     #food test
-    #     self.food=Food()
-    #     self.food.center_x=400
-    #     self.food.center_y=400
-    #     self.food_list.append(self.food)
 
     def setup_biomes(self):
         # add biomes
