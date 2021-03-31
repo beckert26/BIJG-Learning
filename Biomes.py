@@ -1,6 +1,5 @@
 
-
-from main import *
+import arcade
 
 BIOME_SCALING = 1
 

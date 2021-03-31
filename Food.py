@@ -1,4 +1,5 @@
-from main import *
+
+import arcade
 
 FOOD_SCALING = .05
 UPDATES_PER_FRAME=5
