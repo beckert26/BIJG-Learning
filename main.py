@@ -1005,7 +1005,7 @@ class ModificationMenuView(arcade.View):
             center_y=SCREEN_HEIGHT / 1.5 - 300,
             width=300
         )
-        food_input.text = '1'
+        food_input.text = '5'
         food_input.cursor_index = len(food_input.text)
         self.ui_manager.add_ui_element(food_input)
 
@@ -1095,6 +1095,7 @@ class StartFlatButton(arcade.gui.UIFlatButton):
                 game_view = MyGame()
                 window.show_view(game_view)
 
+
     #used to check for floats
     def is_float(self, string):
         try:
@@ -1106,7 +1107,7 @@ class StartFlatButton(arcade.gui.UIFlatButton):
 def main():
     """ Main method """
     global window
-    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Main Menu")
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     main_menu_view=MainMenuView()
     window.show_view(main_menu_view)
     arcade.run()
