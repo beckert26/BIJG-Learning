@@ -38,6 +38,10 @@ BIOME_SIZE=25
 WORLD_LENGTH=BIOME_LENGTH*BIOME_SIZE
 
 CREATURES_TO_SPAWN=75
+#how full a creature needs to be to reproduce this should be between .51 and 1
+REPRODUCTION_RATE=1
+#rate food spawns
+FOOD_SPAWN_RATE=1
 
 #Testing movement speed
 MOVEMENT_SPEED = 3
@@ -69,8 +73,6 @@ class MyGame(arcade.View):
     def __init__(self):
         super().__init__()
 
-
-
         self.updates=0
 
         #set directory
@@ -86,10 +88,10 @@ class MyGame(arcade.View):
         self.hold_left=False
         self.hold_right=False
         # center viewpoint
-        self.view_left=(WORLD_LENGTH-SCREEN_WIDTH)/2
-        self.view_right=(WORLD_LENGTH - SCREEN_WIDTH)/2 + SCREEN_WIDTH
-        self.view_down=(WORLD_LENGTH - SCREEN_HEIGHT)/2
-        self.view_up=(WORLD_LENGTH - SCREEN_HEIGHT)/2 + SCREEN_HEIGHT
+        self.view_left=-65
+        self.view_right=self.view_left+SCREEN_WIDTH*2
+        self.view_down=400
+        self.view_up=self.view_down+SCREEN_HEIGHT*2
 
         #controls simulation speed
         self.simulation_speed=1
@@ -349,7 +351,7 @@ class MyGame(arcade.View):
 
         self.display_message_center()
         self.display_creature_stats()
-        self.display_simulation_speed()
+        self.display_simulation_controls()
 
         # Call draw() on all your sprite lists below
 
@@ -361,12 +363,12 @@ class MyGame(arcade.View):
         """
         for i in range(self.simulation_speed):
             #spawn food
-            self.spawn_food()
+            for j in range(5):
+                x = random.randint(1,60)
+                if(x<=FOOD_SPAWN_RATE):
+                    self.spawn_food()
             self.food_list.update()
             self.creature_list.update()
-
-
-
 
             for creature in self.creature_list:
                 self.move_creature(creature)
@@ -400,7 +402,7 @@ class MyGame(arcade.View):
             self.view_right += ZOOM_SPEED_X
             self.view_left -=ZOOM_SPEED_X
         #zoom in
-        if (self.view_zoom == "zoom_in" and self.view_up-self.view_down>=200):
+        if (self.view_zoom == "zoom_in" and self.view_up-self.view_down>=500):
             self.view_up -= ZOOM_SPEED_Y
             self.view_down += ZOOM_SPEED_Y
             self.view_right -= ZOOM_SPEED_X
@@ -484,10 +486,10 @@ class MyGame(arcade.View):
         while (can_spawn == False):
             creature_x = random.randint(0, WORLD_LENGTH - (CREATURE_WIDTH * 4))
             creature_y = random.randint(0, WORLD_LENGTH - (CREATURE_HEIGHT * 4))
-            for creature in self.creature_list:
+            for c in self.creature_list:
                 if (
-                        creature.center_x - CREATURE_WIDTH <= creature_x and creature_x <= creature.center_x + CREATURE_WIDTH
-                        and creature.center_y - CREATURE_HEIGHT <= creature_y and creature_y <= creature.center_y + CREATURE_HEIGHT):
+                        c.center_x - CREATURE_WIDTH <= creature_x and creature_x <= c.center_x + CREATURE_WIDTH
+                        and c.center_y - CREATURE_HEIGHT <= creature_y and creature_y <= c.center_y + CREATURE_HEIGHT):
                     failed = True
             if (failed == False):
                 can_spawn = True
@@ -497,7 +499,7 @@ class MyGame(arcade.View):
         self.creature_list.append(self.creature)
         self.creature_list.update()
         self.creature_list.update_animation()
-        creature.fullness = creature.fullness/2
+        creature.fullness = creature.max_food/2
 
     def move_creature(self, creature):
         target_tuple = arcade.get_closest_sprite(creature,self.food_list)
@@ -530,7 +532,7 @@ class MyGame(arcade.View):
                             c.target = None
                 food.kill()
                 creature.feed()
-                if(creature.fullness==creature.max_food):
+                if(creature.fullness>=creature.max_food*REPRODUCTION_RATE):
                     self.breed(creature)
 
 
@@ -613,7 +615,7 @@ class MyGame(arcade.View):
         return nearest
         """
 
-    def display_simulation_speed(self):
+    def display_simulation_controls(self):
         self.update_font_size()
         top_margin = self.font_size * 17
         scale=1
@@ -702,7 +704,7 @@ class MyGame(arcade.View):
                          self.view_right - self.font_size * 12,
                          self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
         scaling += 1
-        arcade.draw_text("Current population: "+str(len(self.creature_list)), self.view_right-self.font_size*12, self.view_down+self.font_size*1.5*scaling, arcade.color.BLACK, self.font_size)
+        arcade.draw_text("Population: "+str(len(self.creature_list)), self.view_right-self.font_size*12, self.view_down+self.font_size*1.5*scaling, arcade.color.BLACK, self.font_size)
         scaling+=1
         arcade.draw_text("Total Creatures: " + str(self.total_creatures_generated),
                          self.view_right - self.font_size * 12,
@@ -829,12 +831,10 @@ class MyGame(arcade.View):
             self.hold_right = False
         elif key == arcade.key.P or key==arcade.key.K:
             #pause/play
-            if self.update_rate==1/60:
-                self.update_rate=0
-                self.set_update_rate(self.update_rate)
+            if self.simulation_speed>0:
+                self.simulation_speed=0
             else:
-                self.update_rate=1/60
-                self.set_update_rate(self.update_rate)
+                self.simulation_speed=1
         elif key == arcade.key.L:
             if self.simulation_speed<10:
                 self.simulation_speed+=1
@@ -1044,6 +1044,8 @@ class StartFlatButton(arcade.gui.UIFlatButton):
     #go to game page
     def on_click(self):
         global CREATURES_TO_SPAWN
+        global REPRODUCTION_RATE
+        global FOOD_SPAWN_RATE
         #values from input field
         print(population_input.text)
         print(mutation_input.text)
@@ -1051,6 +1053,8 @@ class StartFlatButton(arcade.gui.UIFlatButton):
         print(food_input.text)
 
         CREATURES_TO_SPAWN=int(population_input.text)
+        REPRODUCTION_RATE=float(reproduction_input.text)
+        FOOD_SPAWN_RATE=int(food_input.text)
 
         global window
         game_view = MyGame()
