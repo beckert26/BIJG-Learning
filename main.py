@@ -47,7 +47,7 @@ FOOD_SPAWN_RATE=1
 MOVEMENT_SPEED = 3
 
 #food spawn RATE bigger means less smaller means more
-FOOD_SPAWN_RATE = 10
+FOOD_SPAWN_RATE = 12
 
 #array to hold message center messages
 message_center=[]
@@ -383,16 +383,16 @@ class MyGame(arcade.View):
             #self.total_runtime += 1
 
         self.creature_list.update_animation()
-        if(self.hold_up==True and self.view_up<WORLD_LENGTH+500):
+        if(self.hold_up==True and self.view_up<WORLD_LENGTH+700):
             self.view_up += VIEW_SPEED
             self.view_down += VIEW_SPEED
-        if(self.hold_down==True and self.view_down>-500):
+        if(self.hold_down==True and self.view_down>-700):
             self.view_up -= VIEW_SPEED
             self.view_down -= VIEW_SPEED
-        if(self.hold_left==True and self.view_left>-500):
+        if(self.hold_left==True and self.view_left>-700):
             self.view_left -= VIEW_SPEED
             self.view_right -= VIEW_SPEED
-        if(self.hold_right==True and self.view_right<WORLD_LENGTH+500):
+        if(self.hold_right==True and self.view_right<WORLD_LENGTH+700):
             self.view_left += VIEW_SPEED
             self.view_right += VIEW_SPEED
         #zoom out
@@ -993,7 +993,7 @@ class ModificationMenuView(arcade.View):
             center_y=SCREEN_HEIGHT / 1.5 - 200,
             width=300
         )
-        reproduction_input.text = '1'
+        reproduction_input.text = '12'
         reproduction_input.cursor_index = len(reproduction_input.text)
         self.ui_manager.add_ui_element(reproduction_input)
 
