@@ -15,6 +15,7 @@ import numpy
 from Creature import *
 from Biomes import *
 from Food import *
+import ctypes
 
 import arcade.gui
 from arcade.gui import UIFlatButton, UIGhostFlatButton, UIManager
@@ -42,12 +43,13 @@ CREATURES_TO_SPAWN=75
 REPRODUCTION_RATE=1
 #rate food spawns
 FOOD_SPAWN_RATE=1
+MUTATION_RATE=1
 
 #Testing movement speed
 MOVEMENT_SPEED = 3
 
 #food spawn RATE bigger means less smaller means more
-FOOD_SPAWN_RATE = 12
+FOOD_SPAWN_RATE = 1
 
 #array to hold message center messages
 message_center=[]
@@ -363,10 +365,10 @@ class MyGame(arcade.View):
         """
         for i in range(self.simulation_speed):
             #spawn food
-            for j in range(5):
-                x = random.randint(1,60)
-                if(x<=FOOD_SPAWN_RATE):
-                    self.spawn_food()
+            #adjsut lower bounds for less spawning
+            x = random.randint(-10, FOOD_SPAWN_RATE)
+            for j in range(0,x):
+                self.spawn_food()
             self.food_list.update()
             self.creature_list.update()
 
@@ -993,7 +995,7 @@ class ModificationMenuView(arcade.View):
             center_y=SCREEN_HEIGHT / 1.5 - 200,
             width=300
         )
-        reproduction_input.text = '12'
+        reproduction_input.text = '1'
         reproduction_input.cursor_index = len(reproduction_input.text)
         self.ui_manager.add_ui_element(reproduction_input)
 
@@ -1028,12 +1030,25 @@ class ModificationMenuView(arcade.View):
 
         arcade.draw_text("Starting Population:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
+        arcade.draw_text("(Integer between 0 and 200)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63,
+                         arcade.color.BLACK, font_size=16, anchor_x="center")
+
         arcade.draw_text("Mutation Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 100,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
+        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63 -100,
+                         arcade.color.BLACK, font_size=16, anchor_x="center")
+
         arcade.draw_text("Reproduction Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 -200,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("Food Distribution:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 300,
+        arcade.draw_text("(Float between .5 and 1)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-200,
+                         arcade.color.BLACK, font_size=16, anchor_x="center")
+        arcade.draw_text("The lower the number the easier it is to reproduce", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.70 - 200,
+                         arcade.color.BLACK, font_size=16, anchor_x="center")
+
+        arcade.draw_text("Food Spawn Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 300,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
+        arcade.draw_text("(Integer between 1 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-300,
+                         arcade.color.BLACK, font_size=16, anchor_x="center")
 
     def on_hide_view(self):
         self.ui_manager.unregister_handlers()
@@ -1046,19 +1061,47 @@ class StartFlatButton(arcade.gui.UIFlatButton):
         global CREATURES_TO_SPAWN
         global REPRODUCTION_RATE
         global FOOD_SPAWN_RATE
+        global MUTATION_RATE
+
         #values from input field
         print(population_input.text)
         print(mutation_input.text)
         print(reproduction_input.text)
         print(food_input.text)
+        MessageBox = ctypes.windll.user32.MessageBoxW
+        #use is float instead of isnumberic for floats
+        if(population_input.text.isnumeric()==False or self.is_float(mutation_input.text)==False or self.is_float(reproduction_input.text)==False or food_input.text.isnumeric()==False ):
+            MessageBox(None, 'Input must be numeric', 'Error', 0)
+        else:
+            population=int(population_input.text)
+            reproduction=float(reproduction_input.text)
+            mutation=float(mutation_input.text)
+            food=int(food_input.text)
+            #these can be adjusted
+            if (population < 1 or population>200):
+                MessageBox(None, 'Starting population out of bounds', 'Error', 0)
+            elif (reproduction < .5 or reproduction>1):
+                MessageBox(None, 'Reproduction rate out of bounds', 'Error', 0)
+            elif (food < 1 or food>10):
+                MessageBox(None, 'Food spawn rate out of bounds', 'Error', 0)
+            elif (mutation < 0 or mutation>10):
+                MessageBox(None, 'Mutation rate out of bounds', 'Error', 0)
+            else:
+                CREATURES_TO_SPAWN=population
+                REPRODUCTION_RATE=reproduction
+                FOOD_SPAWN_RATE=food
+                MUTATION_RATE=mutation
+                global window
+                game_view = MyGame()
+                window.show_view(game_view)
 
-        CREATURES_TO_SPAWN=int(population_input.text)
-        REPRODUCTION_RATE=float(reproduction_input.text)
-        FOOD_SPAWN_RATE=int(food_input.text)
-
-        global window
-        game_view = MyGame()
-        window.show_view(game_view)
+    #used to check for floats
+    def is_float(self, string):
+        try:
+            float(string)
+            return True
+        except ValueError:
+            return False
 
 def main():
     """ Main method """
