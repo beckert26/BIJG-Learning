@@ -1030,22 +1030,24 @@ class ModificationMenuView(arcade.View):
 
         arcade.draw_text("Starting Population:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Integer between 0 and 200)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.65,
+        arcade.draw_text("(Integer between 0 and 200)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
         arcade.draw_text("Mutation Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 100,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.65 -100,
+        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63 -100,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
         arcade.draw_text("Reproduction Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 -200,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Float between .5 and 1)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.65-200,
+        arcade.draw_text("(Float between .5 and 1)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-200,
+                         arcade.color.BLACK, font_size=16, anchor_x="center")
+        arcade.draw_text("The lower the number the easier it is to reproduce", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.70 - 200,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
         arcade.draw_text("Food Spawn Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 300,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Integer between 1 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.65-300,
+        arcade.draw_text("(Integer between 1 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-300,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
     def on_hide_view(self):
