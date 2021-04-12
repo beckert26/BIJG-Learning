@@ -16,6 +16,7 @@ from Creature import *
 from Biomes import *
 from Food import *
 import ctypes
+import time
 
 import arcade.gui
 from arcade.gui import UIFlatButton, UIGhostFlatButton, UIManager
@@ -125,16 +126,21 @@ class MyGame(arcade.View):
         #set up creature info
         self.creature = None
         self.creature_displayed=None
+        self.creature_textures = []
 
         #set up biome None biome
-        self.biome=Biomes(-1)
+        self.biome_textures = [arcade.load_texture(f"sprites/biome/plain.png"),
+                               arcade.load_texture(f"sprites/biome/mountain.png"),
+                               arcade.load_texture(f"sprites/biome/desert.png")]
+        self.biome: arcade.Sprite=Biomes(-1,self.biome_textures)
 
         #biome list initialize to biome size
         self.biome_sprite_list = arcade.SpriteList(use_spatial_hash=True, is_static=True)
         self.biome_list=[[self.biome for i in range(BIOME_SIZE)] for j in range(BIOME_SIZE)]
 
         # set up food list
-        self.food_list = arcade.SpriteList()
+        self.food_list = arcade.SpriteList(use_spatial_hash=True, is_static=True)
+        self.food_texture = arcade.load_texture(f"sprites/food/apple.png")
         #set up food
         self.food=None
 
@@ -143,9 +149,32 @@ class MyGame(arcade.View):
         """ Set up the game variables. Call to re-start the game. """
         """ Set up the game variables. Call to re-start the game. """
 
+        # set up creature textures
+        self.creature_textures.append(load_texture_pair(f"sprites/slimeIdle.gif"))
+        #walking
+        for i in range(7):
+            texture = arcade.load_texture_pair(f"sprites/walk/frame_{i}_delay-0.1s.gif")
+            self.creature_textures.append(texture)
+        #attacking
+        for i in range(6):
+            texture= arcade.load_texture_pair(f"sprites/attack/frame_{i}_delay-0.1s.gif")
+            self.creature_textures.append(texture)
+        #dying
+        for i in range(16):
+            if(i<10):
+                texture = arcade.load_texture_pair(f"sprites/die/frame_0{i}_delay-0.1s.gif")
+            else:
+                texture= arcade.load_texture_pair(f"sprites/die/frame_{i}_delay-0.1s.gif")
+            self.creature_textures.append(texture)
+
+        #damaged
+        for i in range(7):
+            texture= arcade.load_texture_pair(f"sprites/damage/frame_{i}_delay-0.1s.gif")
+            self.creature_textures.append(texture)
+
         # add creatures
         for i in range(CREATURES_TO_SPAWN):
-            self.creature = Creature(i)
+            self.creature = Creature(i,self.creature_textures)
             self.creature.max_food = random.randint(10, 200)
             self.creature.speed_mod = random.randint(10, 200) / 100
             self.creature.biome_speed_mod = [random.randint(10, 200) / 100 for i in range(3)]
@@ -181,10 +210,12 @@ class MyGame(arcade.View):
         self.setup_biomes()
 
         # food test
-        self.food = Food()
+        self.food = Food(self.food_texture)
         self.food.center_x = 400
         self.food.center_y = 400
         self.food_list.append(self.food)
+
+        #time.sleep(2)
 
     def on_show_view(self):
         """ Called once when view is activated. """
@@ -213,25 +244,25 @@ class MyGame(arcade.View):
         mountain_random_y3 = random.randint(1, BIOME_SIZE - 1)
         # add biomes
         #plain
-        self.biome=Biomes(0)
+        self.biome=Biomes(0,self.biome_textures)
         self.biome_list[plain_random_x1][plain_random_y1]=self.biome
-        self.biome = Biomes(0)
+        self.biome = Biomes(0,self.biome_textures)
         self.biome_list[plain_random_x2][plain_random_y2] = self.biome
-        self.biome = Biomes(0)
+        self.biome = Biomes(0,self.biome_textures)
         self.biome_list[plain_random_x3][plain_random_y3] = self.biome
         #mountain
-        self.biome = Biomes(1)
+        self.biome = Biomes(1,self.biome_textures)
         self.biome_list[mountain_random_x1][mountain_random_y1] = self.biome
-        self.biome = Biomes(1)
+        self.biome = Biomes(1,self.biome_textures)
         self.biome_list[mountain_random_x2][mountain_random_y2] = self.biome
-        self.biome = Biomes(1)
+        self.biome = Biomes(1,self.biome_textures)
         self.biome_list[mountain_random_x3][mountain_random_y3] = self.biome
         #desert
-        self.biome = Biomes(2)
+        self.biome = Biomes(2,self.biome_textures)
         self.biome_list[desert_random_x1][desert_random_y1] = self.biome
-        self.biome = Biomes(2)
+        self.biome = Biomes(2,self.biome_textures)
         self.biome_list[desert_random_x2][desert_random_y2] = self.biome
-        self.biome = Biomes(2)
+        self.biome = Biomes(2,self.biome_textures)
         self.biome_list[desert_random_x3][desert_random_y3] = self.biome
 
         #expand algorithm
@@ -248,22 +279,22 @@ class MyGame(arcade.View):
                 #up
                 if(j>0):
                     if(self.biome_list[i][j-1].type=="none"):
-                        self.biome=Biomes(0)
+                        self.biome=Biomes(0,self.biome_textures)
                         self.biome_list[i][j-1]=self.biome
                 #down
                 if(j<BIOME_SIZE-1):
                     if (self.biome_list[i][j+1].type=="none"):
-                        self.biome = Biomes(0)
+                        self.biome = Biomes(0,self.biome_textures)
                         self.biome_list[i][j + 1] = self.biome
                 #left
                 if(i>0):
                     if (self.biome_list[i-1][j].type=="none"):
-                        self.biome = Biomes(0)
+                        self.biome = Biomes(0,self.biome_textures)
                         self.biome_list[i-1][j] = self.biome
                 #right
                 if(i<BIOME_SIZE-1):
                     if (self.biome_list[i+1][j].type=="none"):
-                        self.biome = Biomes(0)
+                        self.biome = Biomes(0,self.biome_textures)
                         self.biome_list[i+1][j] = self.biome
                 fill_plain=False
             #expand mountain
@@ -271,22 +302,22 @@ class MyGame(arcade.View):
                 #up
                 if (j>0):
                     if(self.biome_list[i][j-1].type=="none"):
-                        self.biome=Biomes(1)
+                        self.biome=Biomes(1,self.biome_textures)
                         self.biome_list[i][j-1]=self.biome
                 #down
                 if (j < BIOME_SIZE-1):
                     if (self.biome_list[i][j+1].type=="none"):
-                        self.biome = Biomes(1)
+                        self.biome = Biomes(1,self.biome_textures)
                         self.biome_list[i][j + 1] = self.biome
                 #left
                 if (i > 0):
                     if (self.biome_list[i-1][j].type=="none"):
-                        self.biome = Biomes(1)
+                        self.biome = Biomes(1,self.biome_textures)
                         self.biome_list[i-1][j] = self.biome
                 #right
                 if (i < BIOME_SIZE-1):
                     if (self.biome_list[i+1][j].type=="none"):
-                        self.biome = Biomes(1)
+                        self.biome = Biomes(1,self.biome_textures)
                         self.biome_list[i+1][j] = self.biome
                 fill_mountain=False
             #expand desert
@@ -294,22 +325,22 @@ class MyGame(arcade.View):
                 #up
                 if (j > 0):
                     if(self.biome_list[i][j-1].type=="none"):
-                        self.biome=Biomes(2)
+                        self.biome=Biomes(2,self.biome_textures)
                         self.biome_list[i][j-1]=self.biome
                 #down
                 if (j < BIOME_SIZE-1):
                     if (j < BIOME_SIZE and self.biome_list[i][j+1].type=="none"):
-                        self.biome = Biomes(2)
+                        self.biome = Biomes(2,self.biome_textures)
                         self.biome_list[i][j + 1] = self.biome
                 #left
                 if (i > 0):
                     if (self.biome_list[i-1][j].type=="none"):
-                        self.biome = Biomes(2)
+                        self.biome = Biomes(2,self.biome_textures)
                         self.biome_list[i-1][j] = self.biome
                 #right
                 if (i < BIOME_SIZE-1):
                     if (self.biome_list[i+1][j].type=="none"):
-                        self.biome = Biomes(2)
+                        self.biome = Biomes(2,self.biome_textures)
                         self.biome_list[i+1][j] = self.biome
                 fill_desert=False
             #allow them to be filled after all have done a fill
@@ -327,6 +358,7 @@ class MyGame(arcade.View):
         #add all biomes to biome sprite list
         for i in range(BIOME_SIZE):
             for j in range(BIOME_SIZE):
+                #self.biome_list[i][j].set_texture(0)
                 self.biome_sprite_list.append(self.biome_list[i][j])
     def check_biome_fill(self):
         for i in range(BIOME_SIZE):
@@ -363,6 +395,7 @@ class MyGame(arcade.View):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
+        #time.sleep(0.1)
         for i in range(self.simulation_speed):
             #spawn food
             #adjsut lower bounds for less spawning
@@ -376,13 +409,15 @@ class MyGame(arcade.View):
                 self.move_creature(creature)
                 creature.upkeep()
                 #check for death
+                if(creature.state == "dying" and self.simulation_speed>2):
+                    creature.kill()
                 if (creature.state == "dying" and creature.id not in self.dead_creatures_list):
                     message_center.append("Creature " + str(creature.id) + " has died")
                     self.dead_creatures_list.append(creature.id)
 
         #increment run time by 1/60
-            self.total_runtime+=delta_time
-            #self.total_runtime += 1
+            #self.total_runtime+=delta_time
+            self.total_runtime += 1
 
         self.creature_list.update_animation()
         if(self.hold_up==True and self.view_up<WORLD_LENGTH+700):
@@ -415,7 +450,7 @@ class MyGame(arcade.View):
         for biome in self.biome_sprite_list:
             x = random.randint(1,math.floor((FOOD_SPAWN_RATE*BIOME_SIZE*BIOME_SIZE)/biome.food_spawn))
             if(x==1):
-                self.food=Food()
+                self.food=Food(self.food_texture)
                 can_spawn = False
                 failed = False
                 while(can_spawn == False):
@@ -461,25 +496,21 @@ class MyGame(arcade.View):
         message_center.append("Creature " + str(creature.id) + " has reproduced.")
         creature.num_reproduced+=1
         self.total_creatures_generated += 1
-        self.creature = Creature(self.total_creatures_generated)
-        self.creature.max_food = creature.max_food * 1.0 + float((random.randint(-50, 50)/2000))
-        self.creature.biome_speed_mod[0] = creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000))
-        self.creature.biome_speed_mod[1] = creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50, 50) / 2000))
-        self.creature.biome_speed_mod[2] = creature.biome_speed_mod[2] * 1.0 + float((random.randint(-50, 50) / 2000))
-        self.creature.sight_mod = creature.sight_mod * 1.0 + float((random.randint(-50, 50) / 2000))
+        self.creature = Creature(self.total_creatures_generated,self.creature_textures)
+        self.creature.max_food = max(10,creature.max_food * 1.0 + float((random.randint(-50, 50)/2000)))
+        self.creature.biome_speed_mod[0] = max(0.1,creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000)))
+        self.creature.biome_speed_mod[1] = max(0.1,creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50, 50) / 2000)))
+        self.creature.biome_speed_mod[2] = max(0.1,creature.biome_speed_mod[2] * 1.0 + float((random.randint(-50, 50) / 2000)))
+        self.creature.sight_mod = max(0.1,creature.sight_mod * 1.0 + float((random.randint(-50, 50) / 2000)))
+        self.creature.speed_mod = max(0.1,creature.speed_mod * 1.0 + float((random.randint(-50, 50) / 2000)))
         self.creature.fullness = self.creature.max_food/2
         self.creature.set_upkeep
         # set color to parent color-------
         color_tup = creature._get_color()
         color = [color_tup[0], color_tup[1], color_tup[2]]
-        color[0] = math.floor(color[0] * 1.0 + float((random.randint(-50, 50) / 2000)))
-        color[1] = math.floor(color[1] * 1.0 + float((random.randint(-50, 50) / 2000)))
-        color[1] = math.floor(color[1] * 1.0 + float((random.randint(-50, 50) / 2000)))
-        for i in range(3):
-            if color[i] < 0:
-                color[i] = 0
-            elif color[i] > 255:
-                color[i] = 255
+        color[0] = min(255,max(0,math.floor(color[0] * 1.0 + float((random.randint(-50, 50) / 2000)))))
+        color[1] = min(255,max(0,math.floor(color[1] * 1.0 + float((random.randint(-50, 50) / 2000)))))
+        color[1] = min(255,max(0,math.floor(color[1] * 1.0 + float((random.randint(-50, 50) / 2000)))))
         self.creature._set_color((color[0], color[1], color[2]))
 
         # check overlap
@@ -510,14 +541,45 @@ class MyGame(arcade.View):
             dist = target_tuple[1]
             if(target and dist <= CREATURE_SIGHT * creature.sight_mod):
                 creature.target = target
-        if(not creature.target):
+        test = 0
+        for f in self.food_list:
+            if creature.target == f:
+                test = 1
+        if test != 1:
+            creature.target = None
+        if(creature.target == None):
             if(len(self.food_list)>0):
                 i = random.randint(0, len(self.food_list)-1)
                 creature.target = self.food_list[i]
 
         if(creature.target):
-            #biome = arcade.get_sprites_at_point(creature.position,self.biome_sprite_list)
-            biome=self.biome_list[0]
+            #biome_collision = []
+            #for bl in self.biome_list:
+            #    for b in bl:
+            #        biome_collision.append(arcade.check_for_collision(creature,b))
+            #print(len(self.biome_sprite_list))
+            #for b in self.biome_sprite_list:
+            #    if (b.texture == None):
+            #        print("test")
+
+            #biome = arcade.check_for_collision_with_list(creature,self.biome_sprite_list)
+            #biome = arcade.get_sprites_at_point
+            #biome = arcade.get_closest_sprite(creature,self.biome_sprite_list)
+            #biome = biome[0]
+            #biome = self.biome_list[0]
+            i = int((creature.center_x + 50)/100)
+            if(i<0):
+                i=0
+            if(i>24):
+                i=24
+            j = int((creature.center_y + 50)/100)
+            if(j<0):
+                j=0
+            if(j>24):
+                j=24
+            biome = [self.biome_list[i][j]]
+            #print(biome[0].biome)
+            #biome = [self.get_nearest_biome(creature)]
             direct = self.get_target_direction(creature, creature.target)
             if (biome):
                 creature.change_x = MOVEMENT_SPEED * creature.speed_mod * creature.biome_speed_mod[biome[0].biome] * direct[0]
@@ -603,6 +665,22 @@ class MyGame(arcade.View):
                     min_distance = distance
 
         return self.food_list[min_pos]
+
+    def get_nearest_biome(self, creature, previous=None):
+        if len(self.biome_sprite_list) == 0:
+            return None
+
+        min_pos = 0
+        min_distance = abs(creature.position - self.biome_sprite_list[0].position)
+        for i in range(1, len(self.biome_sprite_list)):
+            if (self.food_list[i] != previous and self.food_list[i] != creature.prev_target2):
+
+                distance = abs(creature.position - self.biome_sprite_list[i].position)
+                if distance < min_distance:
+                    min_pos = i
+                    min_distance = distance
+
+        return self.biome_sprite_list[min_pos]
         """
         smallest_dist = 99999.0
         nearest = self.food_list[0]
@@ -734,9 +812,9 @@ class MyGame(arcade.View):
             creature=self.creature_displayed
             # draw white box around message center
             arcade.draw_rectangle_filled(center_x=self.view_right - self.font_size*7,
-                                         center_y=self.view_up-(self.font_size*8)-top_margin,
+                                         center_y=self.view_up-(self.font_size*10)-top_margin,
                                          width=self.font_size * 13,
-                                         height=self.font_size * 18,
+                                         height=self.font_size * 22,
                                          color=arcade.color.WHITE)
 
             # font size
@@ -781,6 +859,29 @@ class MyGame(arcade.View):
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
+
+            arcade.draw_text("Biome 0 Speed: " + str(creature.biome_speed_mod[0]), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Biome 1 Speed: " + str(creature.biome_speed_mod[1]), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Biome 2 Speed: " + str(creature.biome_speed_mod[2]), self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+
+    #loads two textures on reverse and on normal for left and right animations
+    def load_texture_pair(filename):
+        """
+        Load a texture pair, with the second being a mirror image.
+        """
+        return [
+            arcade.load_texture(filename),
+            arcade.load_texture(filename, flipped_horizontally=True)
+        ]
 
     def convert_time(self):
         m, s = divmod(self.total_runtime, 60)
@@ -838,7 +939,7 @@ class MyGame(arcade.View):
             else:
                 self.simulation_speed=1
         elif key == arcade.key.L:
-            if self.simulation_speed<10:
+            if self.simulation_speed<100:
                 self.simulation_speed+=1
         elif key == arcade.key.J:
             if self.simulation_speed>1:
@@ -1103,6 +1204,9 @@ class StartFlatButton(arcade.gui.UIFlatButton):
             return True
         except ValueError:
             return False
+
+
+
 
 def main():
     """ Main method """
