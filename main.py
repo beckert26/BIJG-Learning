@@ -417,7 +417,7 @@ class MyGame(arcade.View):
 
         #increment run time by 1/60
             #self.total_runtime+=delta_time
-            self.total_runtime += 1
+            self.total_runtime += delta_time
 
         self.creature_list.update_animation()
         if(self.hold_up==True and self.view_up<WORLD_LENGTH+700):
@@ -497,20 +497,20 @@ class MyGame(arcade.View):
         creature.num_reproduced+=1
         self.total_creatures_generated += 1
         self.creature = Creature(self.total_creatures_generated,self.creature_textures)
-        self.creature.max_food = max(10,creature.max_food * 1.0 + float((random.randint(-50, 50)/2000)))
-        self.creature.biome_speed_mod[0] = max(0.1,creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000)))
-        self.creature.biome_speed_mod[1] = max(0.1,creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50, 50) / 2000)))
-        self.creature.biome_speed_mod[2] = max(0.1,creature.biome_speed_mod[2] * 1.0 + float((random.randint(-50, 50) / 2000)))
-        self.creature.sight_mod = max(0.1,creature.sight_mod * 1.0 + float((random.randint(-50, 50) / 2000)))
-        self.creature.speed_mod = max(0.1,creature.speed_mod * 1.0 + float((random.randint(-50, 50) / 2000)))
+        self.creature.max_food = max(10,creature.max_food * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE)/2000)))
+        self.creature.biome_speed_mod[0] = max(0.1,creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE) / 2000)))
+        self.creature.biome_speed_mod[1] = max(0.1,creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE) / 2000)))
+        self.creature.biome_speed_mod[2] = max(0.1,creature.biome_speed_mod[2] * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE) / 2000)))
+        self.creature.sight_mod = max(0.1,creature.sight_mod * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE) / 2000)))
+        self.creature.speed_mod = max(0.1,creature.speed_mod * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE) / 2000)))
         self.creature.fullness = self.creature.max_food/2
         self.creature.set_upkeep
         # set color to parent color-------
         color_tup = creature._get_color()
         color = [color_tup[0], color_tup[1], color_tup[2]]
-        color[0] = min(255,max(0,math.floor(color[0] * 1.0 + float((random.randint(-50, 50) / 2000)))))
-        color[1] = min(255,max(0,math.floor(color[1] * 1.0 + float((random.randint(-50, 50) / 2000)))))
-        color[1] = min(255,max(0,math.floor(color[1] * 1.0 + float((random.randint(-50, 50) / 2000)))))
+        color[0] = min(255,max(0,math.floor(color[0] * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE) / 2000)))))
+        color[1] = min(255,max(0,math.floor(color[1] * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE) / 2000)))))
+        color[1] = min(255,max(0,math.floor(color[1] * 1.0 + float((random.randint(-50*MUTATION_RATE, 50*MUTATION_RATE) / 2000)))))
         self.creature._set_color((color[0], color[1], color[2]))
 
         # check overlap
@@ -813,7 +813,7 @@ class MyGame(arcade.View):
             # draw white box around message center
             arcade.draw_rectangle_filled(center_x=self.view_right - self.font_size*7,
                                          center_y=self.view_up-(self.font_size*10)-top_margin,
-                                         width=self.font_size * 13,
+                                         width=self.font_size * 14,
                                          height=self.font_size * 22,
                                          color=arcade.color.WHITE)
 
@@ -832,7 +832,7 @@ class MyGame(arcade.View):
             arcade.draw_text("Creature id: " + str(creature.id), self.view_right-(self.font_size*12),
                              self.view_up-(self.font_size*1.5*scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale+=1
-            arcade.draw_text("Speed: " + str(creature.speed_mod), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Speed: " + str(round(creature.speed_mod,2)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
             arcade.draw_text("Food: " + str(int(round(creature.fullness,0)))+"/"+str(int(round(creature.max_food,0))), self.view_right - (self.font_size * 12),
@@ -841,7 +841,7 @@ class MyGame(arcade.View):
             arcade.draw_text("Sight: " + str(round(creature.sight_mod,3)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5  * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
-            arcade.draw_text("Food Upkeep: " + str(int(round(creature.food_upkeep*100, 0)))+"%", self.view_right - (self.font_size * 12),
+            arcade.draw_text("Food Upkeep: " + str(round(creature.food_upkeep*100, 2))+"%", self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5  * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
             arcade.draw_text("State: " + str(creature.state), self.view_right - (self.font_size * 12),
@@ -860,15 +860,15 @@ class MyGame(arcade.View):
                              self.font_size)
             scale += 1
 
-            arcade.draw_text("Biome 0 Speed: " + str(creature.biome_speed_mod[0]), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Plain Speed: " + str(round(creature.biome_speed_mod[0], 2)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
-            arcade.draw_text("Biome 1 Speed: " + str(creature.biome_speed_mod[1]), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Mountain Speed: " + str(round(creature.biome_speed_mod[1],2)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
-            arcade.draw_text("Biome 2 Speed: " + str(creature.biome_speed_mod[2]), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Desert Speed: " + str(round(creature.biome_speed_mod[2],2)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
@@ -1165,10 +1165,6 @@ class StartFlatButton(arcade.gui.UIFlatButton):
         global MUTATION_RATE
 
         #values from input field
-        print(population_input.text)
-        print(mutation_input.text)
-        print(reproduction_input.text)
-        print(food_input.text)
         MessageBox = ctypes.windll.user32.MessageBoxW
         #use is float instead of isnumberic for floats
         if(population_input.text.isnumeric()==False or self.is_float(mutation_input.text)==False or self.is_float(reproduction_input.text)==False or food_input.text.isnumeric()==False ):
