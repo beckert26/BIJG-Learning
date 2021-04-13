@@ -5,9 +5,9 @@ import arcade
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
-CREATURE_SIGHT = 75
+CREATURE_SIGHT = 200
 CREATURE_UPKEEP = 100
-CREATURE_DRAIN = 0.1
+CREATURE_DRAIN = 0.5
 
 # Constants used to track if the player is facing left or right
 RIGHT_FACING = 1
@@ -40,7 +40,7 @@ def load_texture_pair(filename):
     ]
 
 class Creature(arcade.Sprite):
-    def __init__(self, id):
+    def __init__(self, id, textures):
         super().__init__()
 
         self.cur_texture=0
@@ -55,6 +55,11 @@ class Creature(arcade.Sprite):
         self.prev_target = None
         self.prev_target2 = None
         self.id=id
+        self.textures = textures
+        self.cur_biome = 0
+        self.bstate = []
+        self.state_next = []
+        self.reward = 0
 
         self.character_face_direction = RIGHT_FACING
 
@@ -68,7 +73,8 @@ class Creature(arcade.Sprite):
         self.num_food_eaten=0;
 
         #load sprite textures for idle
-        self.idle_texture_pair=load_texture_pair(f"sprites/slimeIdle.gif")
+        self.idle_texture_pair=textures[0]
+        self.texture = textures[0][self.character_face_direction]
 
         #load sprite textures
         self.walking_textures = []
@@ -77,25 +83,23 @@ class Creature(arcade.Sprite):
         self.dying_textures = []
         #walking
         for i in range(7):
-            texture= arcade.load_texture_pair(f"sprites/walk/frame_{i}_delay-0.1s.gif")
+            texture= self.textures[i+1]
             self.walking_textures.append(texture)
 
         #attacking
         for i in range(6):
-            texture= arcade.load_texture_pair(f"sprites/attack/frame_{i}_delay-0.1s.gif")
+            texture= self.textures[i+8]
             self.attacking_textures.append(texture)
         #dying
         for i in range(16):
-            if(i<10):
-                texture = arcade.load_texture_pair(f"sprites/die/frame_0{i}_delay-0.1s.gif")
-            else:
-                texture= arcade.load_texture_pair(f"sprites/die/frame_{i}_delay-0.1s.gif")
+            texture= self.textures[i+14]
             self.dying_textures.append(texture)
 
         #damaged
         for i in range(7):
-            texture= arcade.load_texture_pair(f"sprites/damage/frame_{i}_delay-0.1s.gif")
+            texture= self.textures[i+30]
             self.damaged_textures.append(texture)
+
         self.set_upkeep()
 
     def set_upkeep(self):
@@ -109,13 +113,23 @@ class Creature(arcade.Sprite):
             self.state="dying"
             self.speed_mod=0
             #self.kill()
+            self.reward = -1 * self.max_food
+            return 1
+        else:
+            if self.reward <= 0:
+                self.reward = -1 * self.food_upkeep
+            else:
+                self.reward -= self.food_upkeep
+            return 0
 
     def feed(self):
         if(self.fullness+10 <= self.max_food):
             self.fullness += 10
         else:
             self.fullness = self.max_food
-        self.num_food_eaten+=1
+        self.num_food_eaten += 1
+        self.reward = 10
+
     def update_animation(self, delta_time: float = 1/60):
         # Figure out if we need to flip face left or right
         if self.change_x < 0 and self.character_face_direction == RIGHT_FACING:
