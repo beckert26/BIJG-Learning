@@ -835,6 +835,21 @@ class MyGame(arcade.View):
             arcade.draw_text("Speed: " + str(round(creature.speed_mod,2)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
+            arcade.draw_text("Plain Speed: " + str(round(creature.biome_speed_mod[0], 2)),
+                             self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Mountain Speed: " + str(round(creature.biome_speed_mod[1], 2)),
+                             self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Desert Speed: " + str(round(creature.biome_speed_mod[2], 2)),
+                             self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
             arcade.draw_text("Food: " + str(int(round(creature.fullness,0)))+"/"+str(int(round(creature.max_food,0))), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
@@ -860,18 +875,7 @@ class MyGame(arcade.View):
                              self.font_size)
             scale += 1
 
-            arcade.draw_text("Plain Speed: " + str(round(creature.biome_speed_mod[0], 2)), self.view_right - (self.font_size * 12),
-                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
-                             self.font_size)
-            scale += 1
-            arcade.draw_text("Mountain Speed: " + str(round(creature.biome_speed_mod[1],2)), self.view_right - (self.font_size * 12),
-                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
-                             self.font_size)
-            scale += 1
-            arcade.draw_text("Desert Speed: " + str(round(creature.biome_speed_mod[2],2)), self.view_right - (self.font_size * 12),
-                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
-                             self.font_size)
-            scale += 1
+
 
     #loads two textures on reverse and on normal for left and right animations
     def load_texture_pair(filename):
