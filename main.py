@@ -936,8 +936,12 @@ class MyGame(arcade.View):
             #pause/play
             if self.simulation_speed>0:
                 self.simulation_speed=0
+                for c in self.creature_list:
+                    c.state="idle"
             else:
                 self.simulation_speed=1
+                for c in self.creature_list:
+                    c.state="walking"
         elif key == arcade.key.L:
             if self.simulation_speed<100:
                 self.simulation_speed+=1
