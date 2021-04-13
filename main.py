@@ -40,7 +40,7 @@ ZOOM_SPEED_X = (SCREEN_WIDTH*.01)
 BIOME_SIZE=25
 WORLD_LENGTH=BIOME_LENGTH*BIOME_SIZE
 
-CREATURES_TO_SPAWN=10
+CREATURES_TO_SPAWN=75
 #how full a creature needs to be to reproduce this should be between .51 and 1
 REPRODUCTION_RATE=1
 #rate food spawns
@@ -51,7 +51,10 @@ MUTATION_RATE=1
 MOVEMENT_SPEED = 3
 
 #food spawn RATE bigger means less smaller means more
-FOOD_SPAWN_RATE = 1
+FOOD_SPAWN_RATE = 5
+
+#seed
+SEED = 10
 
 #array to hold message center messages
 message_center=[]
@@ -109,6 +112,7 @@ class MyGame(arcade.View):
 
         #time stuff
         self.total_runtime=0
+        self.sim_time=0
 
         #total creatures generated
         self.total_creatures_generated=CREATURES_TO_SPAWN
@@ -149,6 +153,7 @@ class MyGame(arcade.View):
 
         """ Set up the game variables. Call to re-start the game. """
         """ Set up the game variables. Call to re-start the game. """
+        random.seed(SEED)
 
         # set up creature textures
         self.creature_textures.append(load_texture_pair(f"sprites/slimeIdle.gif"))
@@ -397,6 +402,7 @@ class MyGame(arcade.View):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
+        self.total_runtime += delta_time
         #time.sleep(0.1)
         for i in range(self.simulation_speed):
             #spawn food
@@ -456,9 +462,10 @@ class MyGame(arcade.View):
 
 
         #increment run time by 1/60
-            #self.total_runtime+=delta_time
-            self.total_runtime += 1
-            while(len(self.creature_list)<10):
+            self.sim_time += 1
+
+            if((self.total_creatures_generated-CREATURES_TO_SPAWN)%10 == 0):
+                #print("test")
                 self.creature = Creature(self.total_creatures_generated,self.creature_textures)
                 self.total_creatures_generated += 1
                 self.creature.max_food = random.randint(10, 200)
@@ -983,7 +990,7 @@ class MyGame(arcade.View):
         arcade.draw_text("Total Runtime: " + self.convert_time(), self.view_right - self.font_size * 12,
                          self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
         scaling += 1
-        arcade.draw_text("Total Kills: " + str(self.total_kills), self.view_right - self.font_size * 12,
+        arcade.draw_text("Sim Cycles: " + str(self.sim_time), self.view_right - self.font_size * 12,
                          self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
         scaling += 1
         arcade.draw_text("Total Deaths: " + str(self.total_creatures_generated - len(self.creature_list)),
@@ -1038,7 +1045,7 @@ class MyGame(arcade.View):
             arcade.draw_text("Creature id: " + str(creature.id), self.view_right-(self.font_size*12),
                              self.view_up-(self.font_size*1.5*scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale+=1
-            arcade.draw_text("Speed: " + str(creature.speed_mod), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Speed: " + str(round(creature.speed_mod,3)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
             arcade.draw_text("Food: " + str(int(round(creature.fullness,0)))+"/"+str(int(round(creature.max_food,0))), self.view_right - (self.font_size * 12),
@@ -1047,7 +1054,7 @@ class MyGame(arcade.View):
             arcade.draw_text("Sight: " + str(round(creature.sight_mod,3)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5  * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
-            arcade.draw_text("Food Upkeep: " + str(int(round(creature.food_upkeep*100, 0)))+"%", self.view_right - (self.font_size * 12),
+            arcade.draw_text("Food Upkeep: " + str(float(round(creature.food_upkeep*100, 3))), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5  * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
             arcade.draw_text("State: " + str(creature.state), self.view_right - (self.font_size * 12),
@@ -1066,15 +1073,15 @@ class MyGame(arcade.View):
                              self.font_size)
             scale += 1
 
-            arcade.draw_text("Biome 0 Speed: " + str(creature.biome_speed_mod[0]), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Biome 0 Speed: " + str(round(creature.biome_speed_mod[0],3)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
-            arcade.draw_text("Biome 1 Speed: " + str(creature.biome_speed_mod[1]), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Biome 1 Speed: " + str(round(creature.biome_speed_mod[1],3)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
-            arcade.draw_text("Biome 2 Speed: " + str(creature.biome_speed_mod[2]), self.view_right - (self.font_size * 12),
+            arcade.draw_text("Biome 2 Speed: " + str(round(creature.biome_speed_mod[2],3)), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
@@ -1273,13 +1280,14 @@ class ModificationMenuView(arcade.View):
         global mutation_input
         global reproduction_input
         global food_input
+        global seed_input
 
         self.ui_manager.purge_ui_elements()
 
         #population input
         population_input = arcade.gui.UIInputBox(
             center_x=SCREEN_WIDTH/1.5,
-            center_y=SCREEN_HEIGHT/1.5,
+            center_y=SCREEN_HEIGHT/1.5 + 75,
             width=300
         )
         population_input.text = '75'
@@ -1289,7 +1297,7 @@ class ModificationMenuView(arcade.View):
         # mutation input
         mutation_input = arcade.gui.UIInputBox(
             center_x=SCREEN_WIDTH / 1.5 ,
-            center_y=SCREEN_HEIGHT / 1.5 - 100,
+            center_y=SCREEN_HEIGHT / 1.5 - 100 + 75,
             width=300
         )
         mutation_input.text = '1'
@@ -1299,7 +1307,7 @@ class ModificationMenuView(arcade.View):
         # reproduction input
         reproduction_input = arcade.gui.UIInputBox(
             center_x=SCREEN_WIDTH / 1.5,
-            center_y=SCREEN_HEIGHT / 1.5 - 200,
+            center_y=SCREEN_HEIGHT / 1.5 - 200 + 75,
             width=300
         )
         reproduction_input.text = '1'
@@ -1309,12 +1317,23 @@ class ModificationMenuView(arcade.View):
         # food input
         food_input = arcade.gui.UIInputBox(
             center_x=SCREEN_WIDTH / 1.5,
-            center_y=SCREEN_HEIGHT / 1.5 - 300,
+            center_y=SCREEN_HEIGHT / 1.5 - 300 + 75,
             width=300
         )
         food_input.text = '5'
         food_input.cursor_index = len(food_input.text)
         self.ui_manager.add_ui_element(food_input)
+
+
+        # seed input
+        seed_input = arcade.gui.UIInputBox(
+            center_x=SCREEN_WIDTH / 1.5,
+            center_y=SCREEN_HEIGHT / 1.5 - 400 + 75,
+            width=300
+        )
+        seed_input.text = '10'
+        seed_input.cursor_index = len(seed_input.text)
+        self.ui_manager.add_ui_element(seed_input)
 
         new = StartFlatButton('Start Simulation', center_x=SCREEN_WIDTH / 2, center_y=50, width=250, height=50)
         new.set_style_attrs(
@@ -1335,27 +1354,31 @@ class ModificationMenuView(arcade.View):
         arcade.draw_text("Simulation Modifications", SCREEN_WIDTH/2, SCREEN_HEIGHT/1.2,
                          arcade.color.BLACK, font_size=50, anchor_x="center")
 
-        arcade.draw_text("Starting Population:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55,
+        arcade.draw_text("Starting Population:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 + 75,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Integer between 0 and 200)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63,
+        arcade.draw_text("(Integer between 0 and 200)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63  + 75,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
-        arcade.draw_text("Mutation Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 100,
+        arcade.draw_text("Mutation Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 100  + 75,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63 -100,
+        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63 -100 + 75,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
-        arcade.draw_text("Reproduction Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 -200,
+        arcade.draw_text("Reproduction Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 -200 + 75,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Float between .5 and 1)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-200,
+        arcade.draw_text("(Float between .5 and 1)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-200 + 75,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
-        arcade.draw_text("The lower the number the easier it is to reproduce", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.70 - 200,
+        arcade.draw_text("The lower the number the easier it is to reproduce", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.70 - 200 + 75,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
-        arcade.draw_text("Food Spawn Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 300,
+        arcade.draw_text("Food Spawn Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 300 + 75,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Integer between 1 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-300,
+        arcade.draw_text("(Integer between 1 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-300 + 75,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
+
+        arcade.draw_text("Seed:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 400 + 75,
+                         arcade.color.BLACK, font_size=25, anchor_x="center")
+
 
     def on_hide_view(self):
         self.ui_manager.unregister_handlers()
@@ -1369,12 +1392,14 @@ class StartFlatButton(arcade.gui.UIFlatButton):
         global REPRODUCTION_RATE
         global FOOD_SPAWN_RATE
         global MUTATION_RATE
+        global SEED
 
         #values from input field
         print(population_input.text)
         print(mutation_input.text)
         print(reproduction_input.text)
         print(food_input.text)
+        print(seed_input.text)
         MessageBox = ctypes.windll.user32.MessageBoxW
         #use is float instead of isnumberic for floats
         if(population_input.text.isnumeric()==False or self.is_float(mutation_input.text)==False or self.is_float(reproduction_input.text)==False or food_input.text.isnumeric()==False ):
@@ -1384,6 +1409,7 @@ class StartFlatButton(arcade.gui.UIFlatButton):
             reproduction=float(reproduction_input.text)
             mutation=float(mutation_input.text)
             food=int(food_input.text)
+            seed=int(seed_input.text)
             #these can be adjusted
             if (population < 1 or population>200):
                 MessageBox(None, 'Starting population out of bounds', 'Error', 0)
@@ -1393,11 +1419,14 @@ class StartFlatButton(arcade.gui.UIFlatButton):
                 MessageBox(None, 'Food spawn rate out of bounds', 'Error', 0)
             elif (mutation < 0 or mutation>10):
                 MessageBox(None, 'Mutation rate out of bounds', 'Error', 0)
+            elif (seed<0 or seed>999999):
+                MessageBox(None, 'Seed out of bounds', 'Error', 0)
             else:
                 CREATURES_TO_SPAWN=population
                 REPRODUCTION_RATE=reproduction
                 FOOD_SPAWN_RATE=food
                 MUTATION_RATE=mutation
+                SEED=seed
                 global window
                 game_view = MyGame()
                 window.show_view(game_view)
