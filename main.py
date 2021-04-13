@@ -43,7 +43,7 @@ CREATURES_TO_SPAWN=75
 REPRODUCTION_RATE=1
 #rate food spawns
 FOOD_SPAWN_RATE=1
-MUTATION_RATE=1
+MUTATION_RATE=10
 
 #Testing movement speed
 MOVEMENT_SPEED = 3
@@ -462,13 +462,13 @@ class MyGame(arcade.View):
         creature.num_reproduced+=1
         self.total_creatures_generated += 1
         self.creature = Creature(self.total_creatures_generated)
-        self.creature.max_food = creature.max_food * 1.0 + float((random.randint(-50, 50)/2000))
-        self.creature.biome_speed_mod[0] = creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000))
-        self.creature.biome_speed_mod[1] = creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50, 50) / 2000))
-        self.creature.biome_speed_mod[2] = creature.biome_speed_mod[2] * 1.0 + float((random.randint(-50, 50) / 2000))
-        self.creature.sight_mod = creature.sight_mod * 1.0 + float((random.randint(-50, 50) / 2000))
+        self.creature.max_food = creature.max_food * 1.0 + float((random.randint(-50, 50)/2000)) * MUTATION_RATE
+        self.creature.biome_speed_mod[0] = creature.biome_speed_mod[0] * 1.0 + float((random.randint(-50, 50) / 2000)) * MUTATION_RATE
+        self.creature.biome_speed_mod[1] = creature.biome_speed_mod[1] * 1.0 + float((random.randint(-50, 50) / 2000)) * MUTATION_RATE
+        self.creature.biome_speed_mod[2] = creature.biome_speed_mod[2] * 1.0 + float((random.randint(-50, 50) / 2000)) * MUTATION_RATE
+        self.creature.sight_mod = creature.sight_mod * 1.0 + float((random.randint(-50, 50) / 2000)) * MUTATION_RATE
         self.creature.fullness = self.creature.max_food/2
-        self.creature.set_upkeep
+        self.creature.set_upkeep()
         # set color to parent color-------
         color_tup = creature._get_color()
         color = [color_tup[0], color_tup[1], color_tup[2]]
@@ -902,7 +902,7 @@ class MainMenuView(arcade.View):
             border_color_press=arcade.color.BLACK
         )
         self.ui_manager.add_ui_element(new)
-        load = LoadFlatButton('Load Simulation', center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 3, width=250,
+        load = LoadFlatButton('Default Simulation', center_x=SCREEN_WIDTH / 2, center_y=SCREEN_HEIGHT / 3, width=250,
                            height=50)
         load.set_style_attrs(
             font_color=arcade.color.WHITE,
