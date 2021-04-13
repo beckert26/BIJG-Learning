@@ -462,6 +462,7 @@ class MyGame(arcade.View):
 
 
         #increment run time by 1/60
+
             self.sim_time += 1
 
             if((self.total_creatures_generated-CREATURES_TO_SPAWN)%10 == 0):
@@ -498,6 +499,7 @@ class MyGame(arcade.View):
                 self.creature.center_x = creature_x
                 self.creature.center_y = creature_y
                 self.creature_list.append(self.creature)
+
 
         self.creature_list.update_animation()
         if(self.hold_up==True and self.view_up<WORLD_LENGTH+700):
@@ -584,6 +586,7 @@ class MyGame(arcade.View):
         self.creature.biome_speed_mod[2] = min(2.0,max(0.1,creature.biome_speed_mod[2] * 1.0 + float((random.randint(-50, 50)  * MUTATION_RATE/ 1000))))
         self.creature.sight_mod = min(2.0,max(0.5,creature.sight_mod * 1.0 + float((random.randint(-50, 50)  * MUTATION_RATE/ 1000))))
         self.creature.speed_mod = min(2.0,max(0.1,creature.speed_mod * 1.0 + float((random.randint(-50, 50)  * MUTATION_RATE/ 1000))))
+
         self.creature.fullness = self.creature.max_food/2
         self.creature.set_upkeep()
         # set color to parent color-------
@@ -1026,7 +1029,7 @@ class MyGame(arcade.View):
             # draw white box around message center
             arcade.draw_rectangle_filled(center_x=self.view_right - self.font_size*7,
                                          center_y=self.view_up-(self.font_size*10)-top_margin,
-                                         width=self.font_size * 13,
+                                         width=self.font_size * 14,
                                          height=self.font_size * 22,
                                          color=arcade.color.WHITE)
 
@@ -1045,8 +1048,25 @@ class MyGame(arcade.View):
             arcade.draw_text("Creature id: " + str(creature.id), self.view_right-(self.font_size*12),
                              self.view_up-(self.font_size*1.5*scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale+=1
-            arcade.draw_text("Speed: " + str(round(creature.speed_mod,3)), self.view_right - (self.font_size * 12),
+
+            arcade.draw_text("Speed: " + str(round(creature.speed_mod,2)), self.view_right - (self.font_size * 12),
+
                              self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
+            scale += 1
+            arcade.draw_text("Plain Speed: " + str(round(creature.biome_speed_mod[0], 2)),
+                             self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Mountain Speed: " + str(round(creature.biome_speed_mod[1], 2)),
+                             self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Desert Speed: " + str(round(creature.biome_speed_mod[2], 2)),
+                             self.view_right - (self.font_size * 12),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
             scale += 1
             arcade.draw_text("Food: " + str(int(round(creature.fullness,0)))+"/"+str(int(round(creature.max_food,0))), self.view_right - (self.font_size * 12),
                              self.view_up - (self.font_size*1.5 * scale)-top_margin, arcade.color.BLACK, self.font_size)
@@ -1055,6 +1075,7 @@ class MyGame(arcade.View):
                              self.view_up - (self.font_size*1.5  * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
             arcade.draw_text("Food Upkeep: " + str(float(round(creature.food_upkeep*100, 3))), self.view_right - (self.font_size * 12),
+
                              self.view_up - (self.font_size*1.5  * scale)-top_margin, arcade.color.BLACK, self.font_size)
             scale += 1
             arcade.draw_text("State: " + str(creature.state), self.view_right - (self.font_size * 12),
@@ -1073,18 +1094,7 @@ class MyGame(arcade.View):
                              self.font_size)
             scale += 1
 
-            arcade.draw_text("Biome 0 Speed: " + str(round(creature.biome_speed_mod[0],3)), self.view_right - (self.font_size * 12),
-                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
-                             self.font_size)
-            scale += 1
-            arcade.draw_text("Biome 1 Speed: " + str(round(creature.biome_speed_mod[1],3)), self.view_right - (self.font_size * 12),
-                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
-                             self.font_size)
-            scale += 1
-            arcade.draw_text("Biome 2 Speed: " + str(round(creature.biome_speed_mod[2],3)), self.view_right - (self.font_size * 12),
-                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
-                             self.font_size)
-            scale += 1
+
 
     #loads two textures on reverse and on normal for left and right animations
     def load_texture_pair(filename):
@@ -1149,8 +1159,12 @@ class MyGame(arcade.View):
             #pause/play
             if self.simulation_speed>0:
                 self.simulation_speed=0
+                for c in self.creature_list:
+                    c.state="idle"
             else:
                 self.simulation_speed=1
+                for c in self.creature_list:
+                    c.state="walking"
         elif key == arcade.key.L:
             if self.simulation_speed<100:
                 self.simulation_speed+=1
@@ -1395,11 +1409,6 @@ class StartFlatButton(arcade.gui.UIFlatButton):
         global SEED
 
         #values from input field
-        print(population_input.text)
-        print(mutation_input.text)
-        print(reproduction_input.text)
-        print(food_input.text)
-        print(seed_input.text)
         MessageBox = ctypes.windll.user32.MessageBoxW
         #use is float instead of isnumberic for floats
         if(population_input.text.isnumeric()==False or self.is_float(mutation_input.text)==False or self.is_float(reproduction_input.text)==False or food_input.text.isnumeric()==False ):
