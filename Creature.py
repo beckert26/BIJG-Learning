@@ -45,8 +45,9 @@ class Creature(arcade.Sprite):
 
         self.cur_texture=0
 
-        self.biome_speed_mod = [1.0,0.5,0.1]
+        self.biome_speed_mod = [1.0,0.5,0.1,1.0]
         self.speed_mod = 1.0
+        self.speed = 1.0
         self.target = None
         self.max_food = 100
         self.fullness = 50
@@ -56,7 +57,7 @@ class Creature(arcade.Sprite):
         self.prev_target2 = None
         self.id=id
         self.textures = textures
-        self.cur_biome = 0
+        self.cur_biome = 3
         self.bstate = []
         self.state_next = []
         self.reward = 0
@@ -102,12 +103,15 @@ class Creature(arcade.Sprite):
 
         self.set_upkeep()
 
+
     def set_upkeep(self):
+        self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
         average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
         self.food_upkeep = ((self.max_food * self.speed_mod * self.sight_mod * average_biome_speed/CREATURE_UPKEEP) + CREATURE_DRAIN)/30
 
 
     def upkeep(self):
+        self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
         self.fullness -= self.food_upkeep
         if self.fullness < 0:
             self.state="dying"
@@ -122,13 +126,13 @@ class Creature(arcade.Sprite):
                 self.reward -= self.food_upkeep
             return 0
 
-    def feed(self):
-        if(self.fullness+10 <= self.max_food):
-            self.fullness += 10
+    def feed(self, amount = 10):
+        if(self.fullness+amount <= self.max_food):
+            self.fullness += amount
         else:
             self.fullness = self.max_food
         self.num_food_eaten += 1
-        self.reward = 10
+        self.reward = amount
 
     def update_animation(self, delta_time: float = 1/60):
         # Figure out if we need to flip face left or right
