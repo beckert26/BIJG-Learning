@@ -2,6 +2,7 @@
 #from main import *
 
 import arcade
+import math
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
@@ -62,6 +63,9 @@ class Creature(arcade.Sprite):
         self.state_next = []
         self.reward = 0
 
+
+        self.wander_angle = math.radians(0)
+
         self.character_face_direction = RIGHT_FACING
 
         self.scale=CHARACTER_SCALING
@@ -105,13 +109,13 @@ class Creature(arcade.Sprite):
 
 
     def set_upkeep(self):
-        self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
+        #self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
         average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
         self.food_upkeep = ((self.max_food * self.speed_mod * self.sight_mod * average_biome_speed/CREATURE_UPKEEP) + CREATURE_DRAIN)/30
 
 
     def upkeep(self):
-        self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
+        #self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
         self.fullness -= self.food_upkeep
         if self.fullness < 0:
             self.state="dying"
@@ -133,6 +137,9 @@ class Creature(arcade.Sprite):
             self.fullness = self.max_food
         self.num_food_eaten += 1
         self.reward = amount
+
+    def get_speed(self):
+        return self.speed_mod * self.biome_speed_mod[self.cur_biome]
 
     def update_animation(self, delta_time: float = 1/60):
         # Figure out if we need to flip face left or right
