@@ -14,9 +14,12 @@ import math
 import numpy
 from Creature import *
 from Biomes import *
-from Brain import *
+#from Brain import *
 from Food import *
 import ctypes
+import tkinter.filedialog
+from tkinter import Tk
+import pickle
 import time
 
 import arcade.gui
@@ -71,14 +74,22 @@ food_input=None
 class MyGame(arcade.View):
     """
     Main application class.
-
-    NOTE: Go ahead and delete the methods you don't need.
-    If you do need a method, delete the 'pass' and replace it
-    with your own code. Don't leave 'pass' in this program.
     """
 
-    def __init__(self):
+    def __init__(self, creature_list=arcade.SpriteList(), food_list=arcade.SpriteList(use_spatial_hash=True, is_static=True), biome_list=arcade.SpriteList(use_spatial_hash=True, is_static=True), total_runtime=0, sim_time=0, total_creatures_generated=0, total_kills=0, dead_creatures_list=[], cts=75, rr=1, fsr=5, mr=1, seed=10 ):
         super().__init__()
+        global CREATURES_TO_SPAWN
+        global REPRODUCTION_RATE
+        global FOOD_SPAWN_RATE
+        global MUTATION_RATE
+        global SEED
+
+
+        CREATURES_TO_SPAWN=cts
+        REPRODUCTION_RATE=rr
+        FOOD_SPAWN_RATE=fsr
+        MUTATION_RATE=mr
+        SEED=seed
 
         self.updates=0
 
@@ -111,22 +122,22 @@ class MyGame(arcade.View):
         self.hide_ui=False
 
         #time stuff
-        self.total_runtime=0
-        self.sim_time=0
+        self.total_runtime=total_runtime
+        self.sim_time=sim_time
 
         #total creatures generated
-        self.total_creatures_generated=CREATURES_TO_SPAWN
+        self.total_creatures_generated=total_creatures_generated
         # simulation statistics
-        self.total_kills = 0
+        self.total_kills = total_kills
 
         #index for which creature to display
         self.creature_display_stats_index=-1
         self.new_creature_index=False
 
         # hold creature list
-        self.creature_list = arcade.SpriteList()
+        self.creature_list = creature_list
         #track creature id's that have died
-        self.dead_creatures_list=[]
+        self.dead_creatures_list=dead_creatures_list
 
         #set up creature info
         self.creature = None
@@ -140,16 +151,16 @@ class MyGame(arcade.View):
         self.biome: arcade.Sprite=Biomes(-1,self.biome_textures)
 
         #biome list initialize to biome size
-        self.biome_sprite_list = arcade.SpriteList(use_spatial_hash=True, is_static=True)
+        self.biome_sprite_list = biome_list
         self.biome_list=[[self.biome for i in range(BIOME_SIZE)] for j in range(BIOME_SIZE)]
 
         # set up food list
-        self.food_list = arcade.SpriteList(use_spatial_hash=True, is_static=True)
+        self.food_list = food_list
         self.food_texture = arcade.load_texture(f"sprites/food/apple.png")
         #set up food
         self.food=None
 
-        self.brain = Brain()
+        #self.brain = Brain()
 
         """ Set up the game variables. Call to re-start the game. """
         """ Set up the game variables. Call to re-start the game. """
@@ -179,6 +190,7 @@ class MyGame(arcade.View):
             self.creature_textures.append(texture)
 
         # add creatures
+        print(CREATURES_TO_SPAWN)
         for i in range(CREATURES_TO_SPAWN):
             self.creature = Creature(i,self.creature_textures)
             self.creature.max_food = random.randint(10, 200)
@@ -211,6 +223,7 @@ class MyGame(arcade.View):
             self.creature.center_x = creature_x
             self.creature.center_y = creature_y
             self.creature_list.append(self.creature)
+            self.total_creatures_generated+=1
 
         # set up world
         self.setup_biomes()
@@ -221,7 +234,6 @@ class MyGame(arcade.View):
         self.food.center_y = 400
         self.food_list.append(self.food)
 
-        #time.sleep(2)
 
     def on_show_view(self):
         """ Called once when view is activated. """
@@ -913,15 +925,15 @@ class MyGame(arcade.View):
 
     def display_simulation_controls(self):
         self.update_font_size()
-        top_margin = self.font_size * 17
+        top_margin = self.font_size * 15
         scale=1
         if self.hide_ui==False:
             #display controls
             #box
             arcade.draw_rectangle_filled(center_x=self.view_left + self.font_size * 6,
-                                         center_y=self.view_up - (self.font_size * 6) - top_margin,
+                                         center_y=self.view_up - (self.font_size * 7) - top_margin,
                                          width=self.font_size * 19,
-                                         height=self.font_size * 13,
+                                         height=self.font_size * 17,
                                          color=arcade.color.WHITE)
             arcade.draw_text("Simulation Controls: ", self.view_left + (self.font_size),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
@@ -948,6 +960,14 @@ class MyGame(arcade.View):
                              self.font_size)
             scale += 1
             arcade.draw_text("Slow down: J ", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Menu: ESC", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Save: CTRL", self.view_left + (self.font_size),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
@@ -1000,9 +1020,9 @@ class MyGame(arcade.View):
                          self.view_right - self.font_size * 12,
                          self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
         scaling += 1
-        arcade.draw_text("Population: "+str(len(self.creature_list)), self.view_right-self.font_size*12, self.view_down+self.font_size*1.5*scaling, arcade.color.BLACK, self.font_size)
+        arcade.draw_text("Population: "+str(len(self.creature_list)-1), self.view_right-self.font_size*12, self.view_down+self.font_size*1.5*scaling, arcade.color.BLACK, self.font_size)
         scaling+=1
-        arcade.draw_text("Total Creatures: " + str(self.total_creatures_generated),
+        arcade.draw_text("Total Creatures: " + str(self.total_creatures_generated-1),
                          self.view_right - self.font_size * 12,
                          self.view_down + self.font_size * 1.5 * scaling, arcade.color.BLACK, self.font_size)
         scaling += 1
@@ -1094,8 +1114,6 @@ class MyGame(arcade.View):
                              self.font_size)
             scale += 1
 
-
-
     #loads two textures on reverse and on normal for left and right animations
     def load_texture_pair(filename):
         """
@@ -1176,6 +1194,27 @@ class MyGame(arcade.View):
                 self.hide_ui=True
             else:
                 self.hide_ui=False
+        elif key == arcade.key.ESCAPE:
+            global window
+            menu_view = MainMenuView()
+            window.show_view(menu_view)
+        elif key == arcade.key.LCTRL or key==arcade.key.RCTRL:
+            dir_path = os.path.dirname(os.path.realpath(__file__))
+            Tk().withdraw()
+            file_name=tkinter.filedialog.asksaveasfilename(master=None, initialdir=dir_path, filetypes=[("Simulation", ".bijg")], defaultextension="bijg")
+            pickle.dump(self.creature_list, open(file_name, "wb"))
+            pickle.dump(self.food_list, open(file_name, "wb"))
+            pickle.dump(self.biome_list, open(file_name, "wb"))
+            pickle.dump(self.total_runtime, open(file_name, "wb"))
+            pickle.dump(self.sim_time, open(file_name, "wb"))
+            pickle.dump(self.total_creatures_generated, open(file_name, "wb"))
+            pickle.dump(self.total_kills, open(file_name, "wb"))
+            pickle.dump(self.dead_creatures_list, open(file_name, "wb"))
+            pickle.dump(CREATURES_TO_SPAWN, open(file_name, "wb"))
+            pickle.dump(REPRODUCTION_RATE, open(file_name, "wb"))
+            pickle.dump(FOOD_SPAWN_RATE, open(file_name, "wb"))
+            pickle.dump(MUTATION_RATE, open(file_name, "wb"))
+            pickle.dump(SEED, open(file_name, "wb"))
 
 
 
@@ -1208,6 +1247,8 @@ class MainMenuView(arcade.View):
     def __init__(self):
         """ Set up this view """
         super().__init__()
+        #reset viewport
+        arcade.set_viewport(0,1280, 0, 720)
 
         self.ui_manager = UIManager()
 
@@ -1437,7 +1478,7 @@ class StartFlatButton(arcade.gui.UIFlatButton):
                 MUTATION_RATE=mutation
                 SEED=seed
                 global window
-                game_view = MyGame()
+                game_view = MyGame(cts=population,rr=reproduction, fsr=food, mr=mutation, seed=seed)
                 window.show_view(game_view)
 
 
@@ -1450,8 +1491,6 @@ class StartFlatButton(arcade.gui.UIFlatButton):
             return False
 
 
-
-
 def main():
     """ Main method """
     global window
@@ -1459,7 +1498,6 @@ def main():
     main_menu_view=MainMenuView()
     window.show_view(main_menu_view)
     arcade.run()
-
 
 if __name__ == "__main__":
     main()
