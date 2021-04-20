@@ -27,6 +27,10 @@ from arcade.gui import UIFlatButton, UIGhostFlatButton, UIManager
 
 
 
+
+
+import arcade
+
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 SCREEN_TITLE = "BIJG Learning: Evolution Simulation"
@@ -715,7 +719,6 @@ class MyGame(arcade.View):
         #print(inputs)
         return (inputs)
 
-
     def do_action(self, creature, action):
         if action == 0:
             creature.change_y = MOVEMENT_SPEED * creature.speed_mod * creature.biome_speed_mod[creature.cur_biome]
@@ -871,8 +874,6 @@ class MyGame(arcade.View):
         y_dist = creature.center_y - target.center_y
         return [numpy.sign(x_dist)*(-1), numpy.sign(y_dist)*(-1)]
 
-
-
     def get_nearest_sprite(self, creature, list):
         if len(list) == 0:
             return None
@@ -974,7 +975,6 @@ class MyGame(arcade.View):
             arcade.draw_text("Hide Controls: H", self.view_left + (self.font_size),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
-
 
     def display_message_center(self):
         global message_center
@@ -1202,19 +1202,29 @@ class MyGame(arcade.View):
             dir_path = os.path.dirname(os.path.realpath(__file__))
             Tk().withdraw()
             file_name=tkinter.filedialog.asksaveasfilename(master=None, initialdir=dir_path, filetypes=[("Simulation", ".bijg")], defaultextension="bijg")
-            pickle.dump(self.creature_list, open(file_name, "wb"))
-            pickle.dump(self.food_list, open(file_name, "wb"))
-            pickle.dump(self.biome_list, open(file_name, "wb"))
-            pickle.dump(self.total_runtime, open(file_name, "wb"))
-            pickle.dump(self.sim_time, open(file_name, "wb"))
-            pickle.dump(self.total_creatures_generated, open(file_name, "wb"))
-            pickle.dump(self.total_kills, open(file_name, "wb"))
-            pickle.dump(self.dead_creatures_list, open(file_name, "wb"))
-            pickle.dump(CREATURES_TO_SPAWN, open(file_name, "wb"))
-            pickle.dump(REPRODUCTION_RATE, open(file_name, "wb"))
-            pickle.dump(FOOD_SPAWN_RATE, open(file_name, "wb"))
-            pickle.dump(MUTATION_RATE, open(file_name, "wb"))
-            pickle.dump(SEED, open(file_name, "wb"))
+            if(file_name):
+                pickle.dump(self.creature_list[0], open(file_name, "wb"))
+                #pickle.dump(self.creature_list, open(file_name, "wb"))
+                # pickle.dump(self.food_list, open(file_name, "wb"))
+                # pickle.dump(self.biome_list, open(file_name, "wb"))
+                # pickle.dump(self.total_runtime, open(file_name, "wb"))
+                # pickle.dump(self.sim_time, open(file_name, "wb"))
+                # pickle.dump(self.total_creatures_generated, open(file_name, "wb"))
+                # pickle.dump(self.total_kills, open(file_name, "wb"))
+                # pickle.dump(self.dead_creatures_list, open(file_name, "wb"))
+                pickle.dump(CREATURES_TO_SPAWN, open(file_name, "wb"))
+                pickle.dump(REPRODUCTION_RATE, open(file_name, "wb"))
+                pickle.dump(FOOD_SPAWN_RATE, open(file_name, "wb"))
+                pickle.dump(MUTATION_RATE, open(file_name, "wb"))
+                pickle.dump(SEED, open(file_name, "wb"))
+
+            #pause
+            self.simulation_speed = 0
+            for c in self.creature_list:
+                c.state = "idle"
+        elif key==arcade.key.SPACE:
+            creature = pickle.load(open("test.bijg", "rb"))
+            print(creature.id)
 
 
 
