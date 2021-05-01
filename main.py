@@ -913,7 +913,7 @@ class MyGame(arcade.View):
 
     def display_simulation_controls(self):
         self.update_font_size()
-        top_margin = self.font_size * 17
+        top_margin = self.font_size * 15
         scale=1
         if self.hide_ui==False:
             #display controls
@@ -921,7 +921,7 @@ class MyGame(arcade.View):
             arcade.draw_rectangle_filled(center_x=self.view_left + self.font_size * 6,
                                          center_y=self.view_up - (self.font_size * 6) - top_margin,
                                          width=self.font_size * 19,
-                                         height=self.font_size * 13,
+                                         height=self.font_size * 16,
                                          color=arcade.color.WHITE)
             arcade.draw_text("Simulation Controls: ", self.view_left + (self.font_size),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
@@ -948,6 +948,10 @@ class MyGame(arcade.View):
                              self.font_size)
             scale += 1
             arcade.draw_text("Slow down: J ", self.view_left + (self.font_size),
+                             self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
+                             self.font_size)
+            scale += 1
+            arcade.draw_text("Menu: ESC", self.view_left + (self.font_size),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
                              self.font_size)
             scale += 1
@@ -1176,6 +1180,10 @@ class MyGame(arcade.View):
                 self.hide_ui=True
             else:
                 self.hide_ui=False
+        elif key == arcade.key.ESCAPE:
+            global window
+            menu_view = MainMenuView()
+            window.show_view(menu_view)
 
 
 
@@ -1208,6 +1216,8 @@ class MainMenuView(arcade.View):
     def __init__(self):
         """ Set up this view """
         super().__init__()
+        # reset viewport
+        arcade.set_viewport(0, 1280, 0, 720)
 
         self.ui_manager = UIManager()
 
