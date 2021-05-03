@@ -2,10 +2,11 @@
 #from main import *
 
 import arcade
+import math
 
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
-CREATURE_SIGHT = 200
+CREATURE_SIGHT = 150
 CREATURE_UPKEEP = 100
 CREATURE_DRAIN = 0.5
 
@@ -44,10 +45,20 @@ class Creature(arcade.Sprite):
         super().__init__()
 
         self.cur_texture=0
-
-        self.biome_speed_mod = [1.0,0.5,0.1]
+        self.no_food = False
+        self.biome_speed_mod = [1.0,0.5,0.1,1.0]
+        self.biome_affinity = [0.0,1.0,0.5]
+        self.damage_mod = 1.0
+        self.aggro = 0.5
+        self.boredom = 0
+        self.hp = 100
+        self.max_hp = 100
         self.speed_mod = 1.0
+        self.speed = 1.0
         self.target = None
+        self.attack_targ = None
+        self.def_targ = None
+        self.running = False
         self.max_food = 100
         self.fullness = 50
         self.sight_mod = 1.0
@@ -56,10 +67,14 @@ class Creature(arcade.Sprite):
         self.prev_target2 = None
         self.id=id
         self.textures = textures
-        self.cur_biome = 0
+        self.cur_biome = 3
         self.bstate = []
         self.state_next = []
         self.reward = 0
+        self.ignore_list = []
+        self.atk_ignore_list = []
+
+        self.wander_angle = math.radians(0)
 
         self.character_face_direction = RIGHT_FACING
 
@@ -102,33 +117,44 @@ class Creature(arcade.Sprite):
 
         self.set_upkeep()
 
+
     def set_upkeep(self):
+        self.max_hp = self.max_food
+        self.hp = self.max_hp
+        #self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
         average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
-        self.food_upkeep = ((self.max_food * self.speed_mod * self.sight_mod * average_biome_speed/CREATURE_UPKEEP) + CREATURE_DRAIN)/30
+        self.food_upkeep = (((self.max_food/10) * (self.speed_mod*3) * (self.sight_mod*1.8) * max(0.5,self.damage_mod) * (average_biome_speed*3)/CREATURE_UPKEEP) + CREATURE_DRAIN)/60
 
 
     def upkeep(self):
+        #self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
         self.fullness -= self.food_upkeep
-        if self.fullness < 0:
+
+        if self.fullness < 0 or self.hp < 0:
             self.state="dying"
             self.speed_mod=0
             #self.kill()
             self.reward = -1 * self.max_food
             return 1
         else:
+            if self.hp < self.max_hp:
+                self.hp = self.hp + 0.2
             if self.reward <= 0:
                 self.reward = -1 * self.food_upkeep
             else:
                 self.reward -= self.food_upkeep
             return 0
 
-    def feed(self):
-        if(self.fullness+10 <= self.max_food):
-            self.fullness += 10
+    def feed(self, amount = 10):
+        if(self.fullness+amount <= self.max_food):
+            self.fullness += amount
         else:
             self.fullness = self.max_food
         self.num_food_eaten += 1
-        self.reward = 10
+        self.reward = amount
+
+    def get_speed(self):
+        return self.speed_mod * self.biome_speed_mod[self.cur_biome]
 
     def update_animation(self, delta_time: float = 1/60):
         # Figure out if we need to flip face left or right
@@ -153,10 +179,16 @@ class Creature(arcade.Sprite):
         elif(self.state=="attacking"):
             self.cur_texture += 1
             if (self.cur_texture > 5 * UPDATES_PER_FRAME):
-                self.cur_texture = 0
-            frame = self.cur_texture // UPDATES_PER_FRAME
-            direction = self.character_face_direction
-            self.texture = self.attacking_textures[frame][direction]
+                self.cur_texture=0
+                self.state="walking"
+            if(self.state=="attacking"):
+                frame = self.cur_texture // UPDATES_PER_FRAME
+                direction = self.character_face_direction
+                self.texture = self.attacking_textures[frame][direction]
+            else:
+                frame = self.cur_texture // UPDATES_PER_FRAME
+                direction = self.character_face_direction
+                self.texture = self.walking_textures[frame][direction]
         #damaged
         elif(self.state=="damaged"):
             self.cur_texture += 1

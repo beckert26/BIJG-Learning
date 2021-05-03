@@ -5,7 +5,7 @@ BIOME_SCALING = 1
 
 #pictures are 100x100
 BIOME_LENGTH=100
-BIOME_SPAWN_RATE_LIST=[1.5,1.0,0.5]
+BIOME_SPAWN_RATE_LIST=[1.5,1.1,0.8]
 
 class Biomes(arcade.Sprite):
     def __init__(self, biome,textures):

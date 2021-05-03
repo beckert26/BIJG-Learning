@@ -9,13 +9,14 @@ FOOD_WIDTH=452*FOOD_SCALING
 FOOD_HEIGHT=512*FOOD_SCALING
 
 class Food(arcade.Sprite):
-    def __init__(self,texture):
+    def __init__(self,texture, food=10):
         super().__init__()
 
         self.type="none"
 
         self.scale=FOOD_SCALING
         self.texture = texture
+        self.food = food
 
     def update_animation(self, delta_time: float = 1/60):
         return
