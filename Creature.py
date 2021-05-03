@@ -22,6 +22,10 @@ FOODBAR_WIDTH = 25
 FOODBAR_HEIGHT = 3
 FOODBAR_OFFSET_Y = 3
 
+HEALTHBAR_WIDTH = 25
+HEALTHBAR_HEIGHT = 3
+HEALTHBAR_OFFSET_Y = 9
+
 FOOD_NUMBER_OFFSET_X = -10
 FOOD_NUMBER_OFFSET_Y = -25
 
@@ -211,6 +215,7 @@ class Creature(arcade.Sprite):
         """ Draw the health bar """
 
         # Draw the 'unhealthy' background
+        #food bar
         if self.fullness < self.max_food:
             arcade.draw_rectangle_filled(center_x=self.center_x,
                                          center_y=self.center_y + FOODBAR_OFFSET_Y,
@@ -226,6 +231,25 @@ class Creature(arcade.Sprite):
                                      width=food_width,
                                      height=FOODBAR_HEIGHT,
                                      color=arcade.color.BROWN)
+
+        #health bar
+        # Draw the 'unhealthy' background
+        if self.hp < self.max_hp:
+            arcade.draw_rectangle_filled(center_x=self.center_x,
+                                         center_y=self.center_y + HEALTHBAR_OFFSET_Y,
+                                         width=HEALTHBAR_WIDTH,
+                                         height=3,
+                                         color=arcade.color.WHITE)
+
+        # Calculate width based on health
+        health_width = HEALTHBAR_WIDTH * (self.hp / self.max_hp)
+
+        arcade.draw_rectangle_filled(center_x=self.center_x - 0.5 * (HEALTHBAR_WIDTH - health_width),
+                                     center_y=self.center_y + HEALTHBAR_OFFSET_Y,
+                                     width=health_width,
+                                     height=HEALTHBAR_HEIGHT,
+                                     color=arcade.color.RED)
+
     def draw_id(self, font_size):
         arcade.draw_text(str(self.id), self.center_x-10,
                          self.center_y - CREATURE_HEIGHT*2, arcade.color.BLACK, 12)

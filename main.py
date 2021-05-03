@@ -631,8 +631,8 @@ class MyGame(arcade.View):
             """
     def breed(self, creature):
         creature.reward = creature.max_food/2
-        message_center.append("Creature " + str(creature.id) + " has reproduced.")
         creature.num_reproduced+=1
+        message_center.append("Creature " + str(creature.id) + " has reproduced (" + str(creature.num_reproduced) + ").")
         self.total_creatures_generated += 1
         self.creature = Creature(self.total_creatures_generated,self.creature_textures)
         self.creature.max_food = min(200,max(40,creature.max_food * 1.0 + float((random.randint(-50, 50) * MUTATION_RATE/200))))
@@ -1301,6 +1301,7 @@ class MyGame(arcade.View):
                 if creature.attack_targ.hp < 0:
                     creature.feed(creature.attack_targ.max_food/3)
                     creature.num_kills = creature.num_kills + 1
+                    message_center.append("Creature "+str(creature.id)+" has killed creature "+ str(creature.attack_targ.id)+" ("+str(creature.num_kills)+").")
                     creature.attack_targ.no_food = True
             creature.boredom = 0
 
@@ -1408,15 +1409,15 @@ class MyGame(arcade.View):
 
     def display_simulation_controls(self):
         self.update_font_size()
-        top_margin = self.font_size * 15
+        top_margin = self.font_size * 14
         scale=1
         if self.hide_ui==False:
             #display controls
             #box
             arcade.draw_rectangle_filled(center_x=self.view_left + self.font_size * 6,
-                                         center_y=self.view_up - (self.font_size * 6) - top_margin,
+                                         center_y=self.view_up - (self.font_size * 7) - top_margin,
                                          width=self.font_size * 19,
-                                         height=self.font_size * 16,
+                                         height=self.font_size * 15,
                                          color=arcade.color.WHITE)
             arcade.draw_text("Simulation Controls: ", self.view_left + (self.font_size),
                              self.view_up - (self.font_size * 1.5 * scale) - top_margin, arcade.color.BLACK,
@@ -1464,7 +1465,7 @@ class MyGame(arcade.View):
         # draw white box around message center
         arcade.draw_rectangle_filled(center_x=self.view_left+20,
                                      center_y=self.view_down,
-                                     width=self.font_size*35,
+                                     width=self.font_size*40,
                                      height=self.font_size*20,
                                      color=arcade.color.WHITE)
         if(len(message_center)<10):
