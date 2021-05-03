@@ -1300,6 +1300,7 @@ class MyGame(arcade.View):
                 creature.attack_targ.hp = creature.attack_targ.hp - 1.5 * creature.damage_mod
                 if creature.attack_targ.hp < 0:
                     creature.feed(creature.attack_targ.max_food/3)
+                    creature.num_kills = creature.num_kills + 1
                     creature.attack_targ.no_food = True
             creature.boredom = 0
 
