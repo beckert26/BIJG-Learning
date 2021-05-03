@@ -43,7 +43,7 @@ WORLD_LENGTH=BIOME_LENGTH*BIOME_SIZE
 
 CREATURES_TO_SPAWN=75
 #how full a creature needs to be to reproduce this should be between .51 and 1
-REPRODUCTION_RATE=1
+REPRODUCTION_RATE=.5
 #rate food spawns
 FOOD_SPAWN_RATE=5
 MUTATION_RATE=1
@@ -630,7 +630,7 @@ class MyGame(arcade.View):
             self.food_list.append(self.food)
             """
     def breed(self, creature):
-        creature.reward = creature.max_food/2
+        creature.reward = creature.max_food*REPRODUCTION_RATE
         creature.num_reproduced+=1
         message_center.append("Creature " + str(creature.id) + " has reproduced (" + str(creature.num_reproduced) + ").")
         self.total_creatures_generated += 1
@@ -1030,7 +1030,7 @@ class MyGame(arcade.View):
         for food in eat_list:
             creature.feed(food.food)
             food.kill()
-        if (creature.fullness >= creature.max_food * REPRODUCTION_RATE):
+        if (creature.fullness >= creature.max_food):
             self.breed(creature)
 
         target_tuple = self.get_nearest_sprite(creature,self.creature_list)
@@ -1132,7 +1132,7 @@ class MyGame(arcade.View):
                         c.target = None
             creature.feed(food.food)
             food.kill()
-            if (creature.fullness >= creature.max_food * REPRODUCTION_RATE):
+            if (creature.fullness >= creature.max_food ):
                 self.breed(creature)
 
     def move_creature(self, creature):
@@ -1195,7 +1195,7 @@ class MyGame(arcade.View):
                             c.target = None
                 creature.feed(food.food)
                 food.kill()
-                if(creature.fullness>=creature.max_food*REPRODUCTION_RATE):
+                if(creature.fullness>=creature.max_food):
                     self.breed(creature)
 
 
@@ -1343,7 +1343,7 @@ class MyGame(arcade.View):
                         c.target = None
             creature.feed(food.food)
             food.kill()
-            if(creature.fullness>=creature.max_food*REPRODUCTION_RATE):
+            if(creature.fullness>=creature.max_food):
                 self.breed(creature)
 
 
@@ -1859,7 +1859,7 @@ class ModificationMenuView(arcade.View):
             center_y=SCREEN_HEIGHT / 1.5 - 200 + 75,
             width=300
         )
-        reproduction_input.text = '1'
+        reproduction_input.text = '.5'
         reproduction_input.cursor_index = len(reproduction_input.text)
         self.ui_manager.add_ui_element(reproduction_input)
 
@@ -1913,11 +1913,11 @@ class ModificationMenuView(arcade.View):
         arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63 -100 + 75,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
-        arcade.draw_text("Reproduction Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 -200 + 75,
+        arcade.draw_text("Reproduction Cost:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 -200 + 75,
                          arcade.color.BLACK, font_size=25, anchor_x="center")
-        arcade.draw_text("(Float between .5 and 1)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-200 + 75,
+        arcade.draw_text("(Float between .1 and .9)", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.63-200 + 75,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
-        arcade.draw_text("The lower the number the easier it is to reproduce", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.70 - 200 + 75,
+        arcade.draw_text("The higher means less costs to reproduce", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.70 - 200 + 75,
                          arcade.color.BLACK, font_size=16, anchor_x="center")
 
         arcade.draw_text("Food Spawn Rate:", SCREEN_WIDTH / 3, SCREEN_HEIGHT / 1.55 - 300 + 75,
@@ -1957,7 +1957,7 @@ class StartFlatButton(arcade.gui.UIFlatButton):
             #these can be adjusted
             if (population < 1 or population>200):
                 MessageBox(None, 'Starting population out of bounds', 'Error', 0)
-            elif (reproduction < .5 or reproduction>1):
+            elif (reproduction < .1 or reproduction>.9):
                 MessageBox(None, 'Reproduction rate out of bounds', 'Error', 0)
             elif (food < 1 or food>10):
                 MessageBox(None, 'Food spawn rate out of bounds', 'Error', 0)
