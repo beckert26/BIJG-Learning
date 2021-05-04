@@ -2117,7 +2117,7 @@ class ModificationMenuView(arcade.View):
 
         arcade.draw_text("Damage Upkeep:", SCREEN_WIDTH / 1.6, SCREEN_HEIGHT / 1.3 - 300,
                          arcade.color.BLACK, font_size=18, anchor_x="center")
-        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 1.6, SCREEN_HEIGHT / 1.3 - 300gi - 20,
+        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 1.6, SCREEN_HEIGHT / 1.3 - 300 - 20,
                          arcade.color.BLACK, font_size=12, anchor_x="center")
 
         arcade.draw_text("Sight Upkeep:", SCREEN_WIDTH / 1.6, SCREEN_HEIGHT / 1.3 - 375,
