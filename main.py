@@ -581,10 +581,10 @@ class MyGame(arcade.View):
         if(self.hold_down==True and self.view_down>-700):
             self.view_up -= VIEW_SPEED
             self.view_down -= VIEW_SPEED
-        if(self.hold_left==True and self.view_left>-700):
+        if(self.hold_left==True and self.view_left>-1000):
             self.view_left -= VIEW_SPEED
             self.view_right -= VIEW_SPEED
-        if(self.hold_right==True and self.view_right<WORLD_LENGTH+700):
+        if(self.hold_right==True and self.view_right<WORLD_LENGTH+1000):
             self.view_left += VIEW_SPEED
             self.view_right += VIEW_SPEED
         #zoom out
@@ -1494,7 +1494,7 @@ class MyGame(arcade.View):
         # draw white box around message center
         arcade.draw_rectangle_filled(center_x=self.view_left+20,
                                      center_y=self.view_down,
-                                     width=self.font_size*40,
+                                     width=self.font_size*43,
                                      height=self.font_size*20,
                                      color=arcade.color.WHITE)
         if(len(message_center)<10):
