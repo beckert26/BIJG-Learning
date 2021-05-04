@@ -78,7 +78,7 @@ class MyGame(arcade.View):
     with your own code. Don't leave 'pass' in this program.
     """
 
-    def __init__(self, umode=1, atk='f', uspeed=5, ubiome=5, ufood=5, udmg=5, usight=5, biome_spawn=[1.5,1.1,0.8], upkeep_mod=5 ):
+    def __init__(self, umode=1, atk='t', uspeed=5, ubiome=5, ufood=5, udmg=5, usight=5, biome_spawn=[1.5,1.1,0.8], upkeep_mod=5 ):
         super().__init__()
 
         self.updates=0
@@ -2117,7 +2117,7 @@ class ModificationMenuView(arcade.View):
 
         arcade.draw_text("Damage Upkeep:", SCREEN_WIDTH / 1.6, SCREEN_HEIGHT / 1.3 - 300,
                          arcade.color.BLACK, font_size=18, anchor_x="center")
-        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 1.6, SCREEN_HEIGHT / 1.3 - 300 - 20,
+        arcade.draw_text("(Float between 0 and 10)", SCREEN_WIDTH / 1.6, SCREEN_HEIGHT / 1.3 - 300gi - 20,
                          arcade.color.BLACK, font_size=12, anchor_x="center")
 
         arcade.draw_text("Sight Upkeep:", SCREEN_WIDTH / 1.6, SCREEN_HEIGHT / 1.3 - 375,
