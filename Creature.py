@@ -7,7 +7,7 @@ import math
 CHARACTER_SCALING = 1.5
 UPDATES_PER_FRAME=5
 CREATURE_SIGHT = 150
-CREATURE_UPKEEP = 100
+CREATURE_UPKEEP = 5
 CREATURE_DRAIN = 0.5
 
 # Constants used to track if the player is facing left or right
@@ -41,8 +41,18 @@ def load_texture_pair(filename):
     ]
 
 class Creature(arcade.Sprite):
-    def __init__(self, id, textures):
+    def __init__(self, id, textures, creature_upkeep = CREATURE_UPKEEP, ufood = 5, usight = 5, uspeed = 5, udmg = 5, ubiome = 5, umode = 1):
         super().__init__()
+
+        #upkeep stuff
+        self.creature_drain = CREATURE_DRAIN
+        self.creature_upkeep = creature_upkeep
+        self.umode = umode
+        self.ufood = ufood
+        self.usight = usight
+        self.uspeed = uspeed
+        self.udmg = udmg
+        self.ubiome = ubiome
 
         self.cur_texture=0
         self.no_food = False
@@ -85,7 +95,7 @@ class Creature(arcade.Sprite):
         #counting stats
         self.num_reproduced=0
         self.num_kills=0
-        self.num_food_eaten=0;
+        self.num_food_eaten=0
 
         #load sprite textures for idle
         self.idle_texture_pair=textures[0]
@@ -122,9 +132,12 @@ class Creature(arcade.Sprite):
         self.max_hp = self.max_food
         self.hp = self.max_hp
         #self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
-        average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
-        self.food_upkeep = (((self.max_food/10) * (self.speed_mod*3) * (self.sight_mod*1.8) * max(0.5,self.damage_mod) * (average_biome_speed*3)/CREATURE_UPKEEP) + CREATURE_DRAIN)/60
-
+        #average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
+        average_biome_speed = (self.biome_speed_mod[0] * self.biome_speed_mod[1] * self.biome_speed_mod[2]) / 3
+        if(self.umode == 2):
+            self.food_upkeep = ((((self.max_food*(self.ufood/5)/10) * (self.speed_mod*(self.uspeed/5)*3) * (self.sight_mod*(self.usight/5)*1.8) * max(0.5,self.damage_mod * self.udmg/5) * (average_biome_speed*(self.ubiome/5)*3)/100 + self.creature_drain)/60) * (self.creature_upkeep/5))
+        else:
+            self.food_upkeep = (self.max_food/200 + self.speed_mod*self.uspeed + self.damage_mod * self.udmg/5 + average_biome_speed*self.ubiome + self.sight_mod * self.usight/5 + self.creature_drain) * (self.creature_upkeep/5)/200
 
     def upkeep(self):
         #self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
