@@ -138,6 +138,7 @@ class Creature(arcade.Sprite):
         #self.speed = self.speed_mod * self.biome_speed_mod[self.cur_biome]
         #average_biome_speed = (self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2])/3
         average_biome_speed = (self.biome_speed_mod[0] * self.biome_speed_mod[1] * self.biome_speed_mod[2]) / 3
+        #average_biome_speed = average_biome_speed + self.biome_speed_mod[0] + self.biome_speed_mod[1] + self.biome_speed_mod[2]/6
         if(self.umode == 2):
             self.food_upkeep = ((((self.max_food*(self.ufood/5)/10) * (self.speed_mod*(self.uspeed/5)*3) * (self.sight_mod*(self.usight/5)*1.8) * max(0.5,self.damage_mod * self.udmg/5) * (average_biome_speed*(self.ubiome/5)*3)/100 + self.creature_drain)/60) * (self.creature_upkeep/5))
         else:
