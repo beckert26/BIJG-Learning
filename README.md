@@ -2,7 +2,9 @@
 
 ## University of Missouri Spring 2021 Capstone Project
 
-### Team Members: Ian Anderson, Brett Eckert, Gelek Wangyal
+#### Team Members: Ian Anderson, Brett Eckert, Gelek Wangyal
+
+## About
 
 Our project is a simulation game written in python utilizing the Python Arcade Library. 
 
