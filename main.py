@@ -1,12 +1,11 @@
 """
-Starting Template
+Creature Simulations
 
-Once you have learned how to use classes, you can begin your program with this
-template.
+By BIJG Learning
 
-If Python and Arcade are installed, this example can be run from the command line with:
-python -m arcade.examples.starting_template
+Created for Capstone II
 """
+
 import arcade
 import os
 import random
@@ -24,35 +23,37 @@ import arcade.gui
 from arcade.gui import UIFlatButton, UIGhostFlatButton, UIManager
 
 
-
+# Screen constants
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 SCREEN_TITLE = "BIJG Learning: Evolution Simulation"
 
+# For creature size
 CHARACTER_SCALING = 1.5
-UPDATES_PER_FRAME=5
 
-#viewport modifiers
+# viewport modifiers
 VIEW_SPEED=10
 ZOOM_SPEED_Y = (SCREEN_HEIGHT*.01)
 ZOOM_SPEED_X = (SCREEN_WIDTH*.01)
 
-#how many squares for 2d array of biome
+# how many squares for 2d array of biome
 BIOME_SIZE=25
 WORLD_LENGTH=BIOME_LENGTH*BIOME_SIZE
 
+# default spawn size
 CREATURES_TO_SPAWN=75
-#how full a creature needs to be to reproduce this should be between .51 and 1
+
+# how full a creature needs to be to reproduce this should be between .51 and 1
 REPRODUCTION_RATE=.5
-#rate food spawns
+
+# rate food spawns
 FOOD_SPAWN_RATE=5
+
+# default mutation rate
 MUTATION_RATE=1
 
 #Testing movement speed
 MOVEMENT_SPEED = 3
-
-#food spawn RATE bigger means less smaller means more
-FOOD_SPAWN_RATE = 5
 
 #seed
 SEED = 10
@@ -72,16 +73,11 @@ food_input=None
 class MyGame(arcade.View):
     """
     Main application class.
-
-    NOTE: Go ahead and delete the methods you don't need.
-    If you do need a method, delete the 'pass' and replace it
-    with your own code. Don't leave 'pass' in this program.
     """
 
+    # initialize with user input
     def __init__(self, umode=1, atk='t', uspeed=5, ubiome=5, ufood=5, udmg=5, usight=5, biome_spawn=[1.5,1.1,0.8], upkeep_mod=5 ):
         super().__init__()
-
-        self.updates=0
 
         #set directory
         file_path=os.path.dirname(os.path.abspath(__file__))
@@ -118,8 +114,8 @@ class MyGame(arcade.View):
         #font size
         self.font_size=20
 
+        #variables for arcade lib
         self.update_rate=1/60
-
         self.hide_ui=False
 
         #time stuff
@@ -141,7 +137,7 @@ class MyGame(arcade.View):
         self.dead_creatures_list=[]
 
         #set up creature info
-        self.creature = None
+        self.creature: Creature = None
         self.creature_displayed=None
         self.creature_textures = []
 
@@ -149,7 +145,7 @@ class MyGame(arcade.View):
         self.biome_textures = [arcade.load_texture(f"sprites/biome/plain.png"),
                                arcade.load_texture(f"sprites/biome/mountain.png"),
                                arcade.load_texture(f"sprites/biome/desert.png")]
-        self.biome: arcade.Sprite=Biomes(-1,self.biome_textures)
+        self.biome: Biomes=Biomes(-1,self.biome_textures)
 
         #biome list initialize to biome size
         self.biome_sprite_list = arcade.SpriteList(use_spatial_hash=True, is_static=True)
@@ -161,10 +157,10 @@ class MyGame(arcade.View):
         #set up food
         self.food=None
 
-        self.brain = Brain()
+        # This is for machine learning, but not functional
+        #self.brain = Brain()
 
-        """ Set up the game variables. Call to re-start the game. """
-        """ Set up the game variables. Call to re-start the game. """
+        # seed the game
         random.seed(SEED)
 
         # set up creature textures
@@ -192,9 +188,11 @@ class MyGame(arcade.View):
 
         # add creatures
         for i in range(CREATURES_TO_SPAWN):
+            # initialize creature
             self.creature = Creature(i,self.creature_textures,creature_upkeep = self.upkeep_mod,
                                  ufood = self.ufood, usight = self.usight, uspeed = self.uspeed, udmg = self.udmg,
                                  ubiome = self.ubiome, umode = self.umode)
+            # set creature variables
             self.creature.max_food = random.randint(40, 200)
             self.creature.speed_mod = random.randint(10, 200) / 100
             self.creature.biome_speed_mod = [random.randint(10, 200) / 100 for i in range(3)]
@@ -211,9 +209,10 @@ class MyGame(arcade.View):
 
             self.creature._set_color([r, g, b])
 
-            # check overlap
+            # spawn and check overlap
             can_spawn = False
             failed = False
+            # while overlap choose new location
             while (can_spawn == False):
                 creature_x = random.randint(0, WORLD_LENGTH - (CREATURE_WIDTH * 4))
                 creature_y = random.randint(0, WORLD_LENGTH - (CREATURE_HEIGHT * 4))
@@ -227,6 +226,8 @@ class MyGame(arcade.View):
                 failed = False
             self.creature.center_x = creature_x
             self.creature.center_y = creature_y
+
+            #get current biome
             i = int((self.creature.center_x + 50) / 100)
             if (i < 0):
                 i = 0
@@ -250,7 +251,6 @@ class MyGame(arcade.View):
         self.food.center_y = 400
         self.food_list.append(self.food)
 
-        #time.sleep(2)
 
     def on_show_view(self):
         """ Called once when view is activated. """
@@ -417,20 +417,21 @@ class MyGame(arcade.View):
         # the screen to the background color, and erase what we drew last frame.
         arcade.start_render()
 
-
+        #draw sprites
         self.biome_sprite_list.draw()
         self.creature_list.draw()
         self.food_list.draw()
 
+        #draw health bars
         for creature in self.creature_list:
             creature.draw_health_bar()
             creature.draw_id(self.font_size)
 
+        #all message centers/stats
         self.display_message_center()
         self.display_creature_stats()
         self.display_simulation_controls()
 
-        # Call draw() on all your sprite lists below
 
     def on_update(self, delta_time):
 
@@ -439,8 +440,10 @@ class MyGame(arcade.View):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
+        #runtime count
         self.total_runtime += delta_time
-        #time.sleep(0.1)
+
+        #updates per frame update
         for i in range(self.simulation_speed):
             #spawn food
             #adjsut lower bounds for less spawning
@@ -453,39 +456,52 @@ class MyGame(arcade.View):
             self.food_list.update()
             self.creature_list.update()
 
+            # do movement for each creature
             for creature in self.creature_list:
-                #self.move_creature(creature)
+                # if creature is not dying do the movement
                 if creature.state != "dying":
+                    # If no target just wander
                     if creature.target == None and ((creature.attack_targ == None and creature.def_targ == None) or self.atk == 'f'):
                         self.wander(creature)
+                    # if attack target do attack behavior
                     elif creature.attack_targ != None and self.atk == 't':
                         self.attack_creature(creature)
+                    # if def target do defence behavior
                     elif creature.def_targ != None and self.atk == 't':
                         self.defend_creature(creature)
+                    # if target and no def or attack target then just move to the target
                     else:
                         self.move_creature(creature)
                     creature.upkeep()
-                #check for death
-                if(creature.state == "dying" and self.simulation_speed>2):
-                    creature.kill()
-                    if creature.no_food == False:
-                        new_food = Food(self.food_texture,creature.max_food/4)
-                        new_food.center_x = creature.center_x
-                        new_food.center_y = creature.center_y
-                        self.food_list.append(new_food)
-                    creature.change_x = 0
-                    creature.change_y = 0
-                if (creature.state == "dying" and creature.id not in self.dead_creatures_list):
-                    message_center.append("Creature " + str(creature.id) + " has died")
-                    self.dead_creatures_list.append(creature.id)
-                    if creature.no_food == False:
-                        new_food = Food(self.food_texture,creature.max_food/3)
-                        new_food.center_x = creature.center_x
-                        new_food.center_y = creature.center_y
-                        self.food_list.append(new_food)
-                        creature.no_food = True
-                    creature.change_x = 0
-                    creature.change_y = 0
+
+                #check for death if speed high don't do animation just kill directly
+                if(creature.id not in self.dead_creatures_list):
+                    if(creature.state == "dying" and self.simulation_speed>2):
+                        message_center.append("Creature " + str(creature.id) + " has died")
+                        # no_food is a variable used to prevent food spawn when creature dies in combat because that is calculated seperately
+                        if creature.no_food == False:
+                            # spawn new food from dead creature
+                            new_food = Food(self.food_texture,creature.max_food/4)
+                            new_food.center_x = creature.center_x
+                            new_food.center_y = creature.center_y
+                            self.food_list.append(new_food)
+                        creature.kill()
+
+                    # if speed not high
+                    elif (creature.state == "dying"):
+                        message_center.append("Creature " + str(creature.id) + " has died")
+                        self.dead_creatures_list.append(creature.id)
+                        # no_food is a variable used to prevent food spawn when creature dies in combat because that is calculated seperately
+                        if creature.no_food == False:
+                            # spawn new food from dead creature
+                            new_food = Food(self.food_texture,creature.max_food/3)
+                            new_food.center_x = creature.center_x
+                            new_food.center_y = creature.center_y
+                            self.food_list.append(new_food)
+                            creature.no_food = True
+                        # Nullify movement
+                        creature.change_x = 0
+                        creature.change_y = 0
 
             """
             #this code was from out machine learning implementation
@@ -523,11 +539,13 @@ class MyGame(arcade.View):
             # increment sim time once each update cycle
             self.sim_time += 1
 
+            #spawn random creature for every 10 creatures reproduced
             if((self.total_creatures_generated-CREATURES_TO_SPAWN)%10 == 0 and self.total_creatures_generated-CREATURES_TO_SPAWN != 0):
-                #print("test")
+                # creature init
                 self.creature = Creature(self.total_creatures_generated,self.creature_textures,creature_upkeep = self.upkeep_mod,
                                  ufood = self.ufood, usight = self.usight, uspeed = self.uspeed, udmg = self.udmg,
                                  ubiome = self.ubiome, umode = self.umode)
+                # set variables
                 self.total_creatures_generated += 1
                 self.creature.max_food = random.randint(40, 200)
                 self.creature.speed_mod = random.randint(10, 200) / 100
@@ -561,6 +579,8 @@ class MyGame(arcade.View):
                     failed = False
                 self.creature.center_x = creature_x
                 self.creature.center_y = creature_y
+
+                #get biome
                 i = int((self.creature.center_x + 50) / 100)
                 if (i < 0):
                     i = 0
@@ -575,8 +595,10 @@ class MyGame(arcade.View):
                 self.creature.set_upkeep()
                 self.creature_list.append(self.creature)
 
-
+        # update animation
         self.creature_list.update_animation()
+
+        # change view
         if(self.hold_up==True and self.view_up<WORLD_LENGTH+700):
             self.view_up += VIEW_SPEED
             self.view_down += VIEW_SPEED
@@ -604,13 +626,23 @@ class MyGame(arcade.View):
         arcade.set_viewport(self.view_left,self.view_right, self.view_down, self.view_up)
 
     def spawn_food(self):
+        """
+        Spawns food based on spawn rates and adds food to food list
+
+        """
+        # do food spawn for each biome sqaure
         for biome in self.biome_sprite_list:
+            # random food chance
             if(biome.food_spawn == 0):
                 x = 0
             else:
                 x = random.randint(1,math.floor((FOOD_SPAWN_RATE*BIOME_SIZE*BIOME_SIZE)/biome.food_spawn))
+            # if food will spawn
             if(x==1):
+                # init
                 self.food=Food(self.food_texture)
+
+                #make sure no overlap
                 can_spawn = False
                 failed = False
                 while(can_spawn == False):
@@ -629,34 +661,19 @@ class MyGame(arcade.View):
                 self.food_list.append(self.food)
 
 
-        """
-        #% chance of spawning food every tick
-        x=random.randint(1,FOOD_SPAWN_RATE)
-        if(x==1):
-            self.food=Food()
-            #check overlap
-            can_spawn = False
-            failed = False
-            while (can_spawn == False):
-                food_x = random.randint(0, WORLD_LENGTH - math.ceil(FOOD_WIDTH)*4)
-                food_y = random.randint(0, WORLD_LENGTH - math.ceil(FOOD_HEIGHT)*4)
-                for food in self.food_list:
-                    if (
-                            food.center_x - FOOD_WIDTH <= food_x and food_x <= food.center_x + FOOD_WIDTH
-                            and food.center_y - FOOD_HEIGHT <= food_y and food_y <= food.center_y + FOOD_HEIGHT):
-                        failed = True
-                if (failed == False):
-                    can_spawn = True
-                failed = False
-            self.food.center_x = food_x
-            self.food.center_y = food_y
-            self.food_list.append(self.food)
-            """
     def breed(self, creature):
+        """
+        Function breeds the passed creature and spawns a mutated copy of the creature at a nearby spot
+        :param creature:
+        """
+
+        # update simulation params
         creature.reward = creature.max_food/2
         creature.num_reproduced+=1
         message_center.append("Creature " + str(creature.id) + " has reproduced (" + str(creature.num_reproduced) + ").")
         self.total_creatures_generated += 1
+
+        # spawn in creature
         self.creature = Creature(self.total_creatures_generated,self.creature_textures,creature_upkeep = self.upkeep_mod,
                                  ufood = self.ufood, usight = self.usight, uspeed = self.uspeed, udmg = self.udmg,
                                  ubiome = self.ubiome, umode = self.umode)
@@ -685,15 +702,12 @@ class MyGame(arcade.View):
         color[0] = min(255,max(0,math.floor(color[0] * 1.0 + float((random.randint(-50, 50) * MUTATION_RATE / 1000)))))
         color[1] = min(255,max(0,math.floor(color[1] * 1.0 + float((random.randint(-50, 50) * MUTATION_RATE / 1000)))))
         color[1] = min(255,max(0,math.floor(color[1] * 1.0 + float((random.randint(-50, 50) * MUTATION_RATE / 1000)))))
-
         self.creature._set_color((color[0], color[1], color[2]))
 
         # check overlap
         can_spawn = False
         failed = False
         while (can_spawn == False):
-            #creature_x = random.randint(0, WORLD_LENGTH - (CREATURE_WIDTH * 4))
-            #creature_y = random.randint(0, WORLD_LENGTH - (CREATURE_HEIGHT * 4))
             creature_x = creature.center_x + random.randint(-100,100)
             creature_y = creature.center_y + random.randint(-100,100)
             for c in self.creature_list:
@@ -706,6 +720,8 @@ class MyGame(arcade.View):
             failed = False
         self.creature.center_x = creature_x
         self.creature.center_y = creature_y
+
+        # get biome
         i = int((self.creature.center_x + 50) / 100)
         if (i < 0):
             i = 0
@@ -727,9 +743,18 @@ class MyGame(arcade.View):
             creature.fullness = creature.max_food * 0.999
 
     def get_biomes(self, creature, x, y):
-        #inputs = []
+        """
+        gets the biomes near a creature at position x,y
+        :param creature:
+        :param x:
+        :param y:
+        :return: 2d array of nearby biome type index
+        """
+        #2d array for biome type index
         biomes = [[-1,-1,-1],[-1,-1,-1],[-1,-1,-1]]
+        # get y index of biome in the biome list
         j = int((y + 50) / 100)
+        # manually set edge cases for border
         if (j <= 0):
             j = 0
             biomes[0][0] = 3
@@ -740,7 +765,9 @@ class MyGame(arcade.View):
             biomes[0][2] = 3
             biomes[1][2] = 3
             biomes[2][2] = 3
+        # get x index of biome in the biome list
         i = int((x + 50) / 100)
+        # manually set edge cases for border
         if (i <= 0):
             i = 0
             biomes[0][0] = 3
@@ -751,22 +778,25 @@ class MyGame(arcade.View):
             biomes[2][0] = 3
             biomes[2][1] = 3
             biomes[2][2] = 3
+        # set currect biome
         if creature != None:
             creature.cur_biome = self.biome_list[i][j].biome
-        #i = min(24,max(0,int((creature.center_x+50)/100)))
-        #j = min(24,max(0,int((creature.center_y+50)/
+        # populate the array to be returned
         for k in range(len(biomes)):
             for p in range(len(biomes[0])):
                 if biomes[k][p] == -1:
                     biomes[k][p] = self.biome_list[i+k-1][j+p-1].biome
-                #inputs.append(float(biomes[k][p])/3.0)
-        #print(inputs)
+        # return the biomes
         return (biomes)
 
 
-    # Function not used in final implementation was for machine learning
-    # Function gets all the inputs needed for machine learning
     def get_inputs(self, creature):
+        """
+        Function not used in final implementation was for machine learning
+        Function gets all the inputs needed for machine learning
+        :param creature:
+        :return: input array
+        """
         food_tuple = self.get_nearest_sprite(creature, self.food_list)
         inputs = []
         if (food_tuple):
@@ -830,8 +860,6 @@ class MyGame(arcade.View):
             biomes[2][1] = 3
             biomes[2][2] = 3
         creature.cur_biome = self.biome_list[i][j].biome
-        #i = min(24,max(0,int((creature.center_x+50)/100)))
-        #j = min(24,max(0,int((creature.center_y+50)/
         for k in range(len(biomes)):
             for p in range(len(biomes[0])):
                 if biomes[k][p] == -1:
@@ -853,6 +881,13 @@ class MyGame(arcade.View):
 
 
     def do_action(self, creature, action):
+        """
+        Function not used in final implementation
+        Preforms one of 9 actions (one for each direction and a stop action)
+        :param creature:
+        :param action:
+        :return:
+        """
         if action == 0:
             creature.change_y = MOVEMENT_SPEED * creature.speed_mod * creature.biome_speed_mod[creature.cur_biome]
         elif action == 1:
@@ -890,15 +925,30 @@ class MyGame(arcade.View):
         for food in eat_list:
             creature.feed(food.food)
             food.kill()
+        # breed if needed
         if (creature.fullness >= creature.max_food * REPRODUCTION_RATE):
             self.breed(creature)
 
     def wander(self, creature):
-        speed = MOVEMENT_SPEED * creature.get_speed()
+        """
+        Preforms a basic wander algorithm for the creature
+        Has a biome affinity applied as well
+        Also selects targets as needed
+        :param creature:
+        :return:
+        """
+        speed = MOVEMENT_SPEED * creature.get_speed() #speed of creature
+
+        # apply biome affinity
+        # get biomes
         biomes = self.get_biomes(creature, creature.center_x, creature.center_y)
+        # vector array showing the direction away from each biome returned from get_biomes function
         biomes_direct = [[[1,1],[1,0],[1,-1]],[[0,1],[0,0],[0,-1]],[[-1,1],[-1,0],[-1,-1]]]
+        #for each biome in the array
         for i in range(3):
             for j in range(3):
+                # apply a velocity change away from the biome
+                # if biome is the border apply a negative affinity
                 if biomes[i][j] == 3:
                     creature.change_y = creature.change_y + biomes_direct[i][j][1] * (1.3-creature.biome_affinity[creature.cur_biome]) * 0.2 * MOVEMENT_SPEED * creature.get_speed()
                     creature.change_x = creature.change_x + biomes_direct[i][j][0] * (1.3-creature.biome_affinity[creature.cur_biome]) * 0.2 * MOVEMENT_SPEED * creature.get_speed()
@@ -906,6 +956,7 @@ class MyGame(arcade.View):
                     creature.change_y = creature.change_y + biomes_direct[i][j][1] * (1-creature.biome_affinity[biomes[i][j]]) * 0.2 * MOVEMENT_SPEED * creature.get_speed()
                     creature.change_x = creature.change_x + biomes_direct[i][j][0] * (1-creature.biome_affinity[biomes[i][j]]) * 0.2 * MOVEMENT_SPEED * creature.get_speed()
 
+        # virtual circle used for wander algorithm
         circleCenter = [creature.change_x,creature.change_y]
         circleCenter = np.array(circleCenter)
         cnorm = np.linalg.norm(circleCenter)
@@ -914,6 +965,7 @@ class MyGame(arcade.View):
         circleCenter = circleCenter/cnorm
         circleCenter = circleCenter * 2.5 * speed
 
+        # displacement used for wander algorithm
         displacement = [0, 1]
         displacement = np.array(displacement)
         dnorm = np.linalg.norm(displacement)
@@ -921,15 +973,21 @@ class MyGame(arcade.View):
             dnorm = 1
         displacement = displacement/dnorm
         displacement = speed * displacement
+
+        # set displacement based off the creature wander angle
         dnorm = np.linalg.norm(displacement)
         displacement[0] = math.cos(creature.wander_angle) * dnorm
         displacement[1] = math.sin(creature.wander_angle) * dnorm
+
+        #update the wander angle
         creature.wander_angle = creature.wander_angle + ((random.random() * math.radians(45 * speed)) - (math.radians(45 * speed) * 0.5))
         creature.wander_angle = math.radians(math.degrees(creature.wander_angle) % 360)
         creature.wander_angle = math.radians(math.degrees(creature.wander_angle) % 360)
+
+        #get the wander force
         wander_force = circleCenter + displacement
 
-
+        # set the velocity using the wander force
         wfnorm = np.linalg.norm(wander_force)
         if wfnorm > 0.5 * speed:
             wander_force = wander_force*5/wfnorm
@@ -939,9 +997,11 @@ class MyGame(arcade.View):
         if vnorm > speed:
             velocity = velocity*MOVEMENT_SPEED * creature.get_speed()/vnorm
 
+        #update creature vector
         creature.change_x = velocity[0]
         creature.change_y = velocity[1]
-        #print(creature.change_x)
+
+        # Code to reduce time spent on edge
         if creature.center_x > BIOME_SIZE * BIOME_LENGTH - 50:
             creature.center_x = BIOME_SIZE * BIOME_LENGTH - 50
 
@@ -969,18 +1029,24 @@ class MyGame(arcade.View):
                 creature.wander_angle -= math.radians(20)
                 #print(creature.wander_angle)
 
+        # food target selection
         target_tuple = self.get_nearest_sprite(creature,self.food_list)
+        # if a target found
         if(target_tuple):
             target = target_tuple[0]
             dist = target_tuple[1]
-            if(target and dist <= CREATURE_SIGHT * creature.sight_mod):
+            # if target in sight range
+            if(target and dist <= CREATURE_SIGHT * creature.sight_mod and target != creature.target):
                 ignore = False
+                # check if in ignore list
                 for t in creature.ignore_list:
                     if target == t:
                         creature.ignore_list.remove(t)
                         creature.ignore_list.append(t)
                         ignore = True
+                # if not in ignore list
                 if ignore == False:
+                    # get biome
                     i = int((target.center_x + 50) / 100)
                     if (i < 0):
                         i = 0
@@ -993,6 +1059,7 @@ class MyGame(arcade.View):
                         j = 24
                     biome = [self.biome_list[i][j]]
                     b = biome[0].biome
+                    # use affinity to decide if it should ignore
                     if(creature.biome_affinity[b] < float(random.randint(10,85))/100):
                         creature.ignore_list.append(target)
                         if len(creature.ignore_list) > 5:
@@ -1000,26 +1067,33 @@ class MyGame(arcade.View):
                     else:
                         creature.target = target
 
-
+        # check if creature can eat a food
         eat_list = arcade.check_for_collision_with_list(creature, self.food_list)
         for food in eat_list:
             creature.feed(food.food)
             food.kill()
+        # breed if needed
         if (creature.fullness >= creature.max_food):
             self.breed(creature)
 
+        # get attack targets
         target_tuple = self.get_nearest_sprite(creature,self.creature_list)
+        # if possible target exits
         if(target_tuple):
             target = target_tuple[0]
             dist = target_tuple[1]
-            if(target and dist <= CREATURE_SIGHT * creature.sight_mod):
+            # if in sight range and not already target
+            if(target and dist <= CREATURE_SIGHT * creature.sight_mod and creature.attack_targ != target):
                 ignore = False
+                # check if in ignore list
                 for t in creature.atk_ignore_list:
                     if target == t:
                         creature.atk_ignore_list.remove(t)
                         creature.atk_ignore_list.append(t)
                         ignore = True
+                # if not in ignore list
                 if ignore == False:
+                    # get biome
                     i = int((target.center_x + 50) / 100)
                     if (i < 0):
                         i = 0
@@ -1034,6 +1108,7 @@ class MyGame(arcade.View):
                     b = biome[0].biome
                     dm = max(0.01, creature.damage_mod)
                     hp = max(0.01, creature.hp)
+                    # add to ignore list or target based on creature aggro and other stats
                     if(creature.biome_affinity[b] < float(random.randint(10,85))/100 or creature.aggro < target.hp/hp * target.damage_mod/dm * float(random.randint(0,200)/100)):
                         creature.atk_ignore_list.append(target)
                         if len(creature.atk_ignore_list) > 10:
@@ -1045,35 +1120,52 @@ class MyGame(arcade.View):
 
 
     def defend_creature(self, creature):
+        """
+        Function either has creature run away or start attacking back based on aggro and other stats
+        :param creature:
+        :return:
+        """
+        # make sure attacking creature still exists
         test = 0
         for c in self.creature_list:
             if creature.def_targ == c:
                 test = 1
         if test != 1:
             creature.def_targ = None
+            creature.running = False
             return
 
+        # make sure creature has a defence target
         if (creature.def_targ == None):
+            creature.running = False
             return
+
+        # make sure defence target is attacking this creature
         if (creature.def_targ.attack_targ != creature):
-            creature.def_targ == None
+            creature.def_targ = None
+            creature.running = False
             return
-        #dist = arcade.get_distance_between_sprites(creature, creature.def_targ)
+
+        # calculate run or attack based off creature stats
         targ = creature.def_targ
         dm = max(0.01,targ.damage_mod)
         hp = max(0.01,targ.hp)
         if creature.aggro > creature.damage_mod/dm * creature.hp/hp * random.randint(0,100) / 100 and creature.running == False:
             creature.attack_targ = creature.def_targ
             creature.def_targ = None
+            creature.running = False
             return
+        # if decide run then set the running = True so it will keep running
         else:
             creature.running = True
 
 
-
+        # if creature is running then move way from target
         if creature.running == True:
+            # get direction
             direct = self.get_target_direction(creature, creature.def_targ)
 
+            # get biome for speed calc
             i = int((creature.center_x + 50) / 100)
             if (i < 0):
                 i = 0
@@ -1086,9 +1178,11 @@ class MyGame(arcade.View):
                 j = 24
             biome = [self.biome_list[i][j]]
             creature.cur_biome = biome[0].biome
+            # move away from target
             creature.change_x = MOVEMENT_SPEED * creature.get_speed() * (-1) * direct[0]
             creature.change_y = MOVEMENT_SPEED * creature.get_speed() * (-1) * direct[1]
 
+        # make sure doesn't exit map
         if creature.center_x > BIOME_SIZE * BIOME_LENGTH - 50:
             creature.center_x = BIOME_SIZE * BIOME_LENGTH - 50
         elif creature.center_x < -50:
@@ -1098,6 +1192,7 @@ class MyGame(arcade.View):
         elif creature.center_y < -50:
             creature.center_y = -50
 
+        # check for any food the creature might pick up while running
         eat_list = arcade.check_for_collision_with_list(creature, self.food_list)
         for food in eat_list:
             if (creature.target == food):
@@ -1111,12 +1206,16 @@ class MyGame(arcade.View):
                 self.breed(creature)
 
     def move_creature(self, creature):
+
+        # get target incase a new food spawns
         target_tuple = self.get_nearest_sprite(creature,self.food_list)
         if(target_tuple):
             target = target_tuple[0]
             dist = target_tuple[1]
+            # if target in sight then update target
             if(target and dist <= CREATURE_SIGHT * creature.sight_mod):
                 creature.target = target
+        # test to make sure target still exists
         test = 0
         for f in self.food_list:
             if creature.target == f:
@@ -1124,10 +1223,12 @@ class MyGame(arcade.View):
         if test != 1:
             creature.target = None
 
+        # if creature has a target do movement
         if(creature.target):
+            # get direction
             direct = self.get_target_direction(creature, creature.target)
 
-
+            # get biome
             i = int((creature.center_x + 50)/100)
             if(i<0):
                 i=0
@@ -1140,11 +1241,11 @@ class MyGame(arcade.View):
                 j=24
             biome = [self.biome_list[i][j]]
             creature.cur_biome = biome[0].biome
-
+            #do movement
             creature.change_x = MOVEMENT_SPEED * creature.get_speed() * direct[0]
             creature.change_y = MOVEMENT_SPEED * creature.get_speed() * direct[1]
 
-
+            # check for any food to eat
             eat_list = arcade.check_for_collision_with_list(creature, self.food_list)
             for food in eat_list:
                 if(creature.target == food):
@@ -1154,22 +1255,26 @@ class MyGame(arcade.View):
                             c.target = None
                 creature.feed(food.food)
                 food.kill()
+                # breed if needed
                 if(creature.fullness>=creature.max_food):
                     self.breed(creature)
 
 
     def attack_creature(self, creature):
+        # make sure target still exists
         test = 0
         for c in self.creature_list:
             if creature.attack_targ == c:
                 test = 1
         if test != 1:
-            if creature.attack_targ.def_targ == creature:
-                creature.attack_targ.def_targ = None
-            if creature.attack_targ.attack_targ == creature:
-                creature.def_targ = creature.attack_targ
+           # if creature.attack_targ.def_targ == creature:
+           #     creature.attack_targ.def_targ = None
+           # if creature.attack_targ.attack_targ == creature:
+           #     creature.def_targ = creature.
+           #remove attack target
             creature.attack_targ = None
             creature.boredom = 0
+           # see if there is a food target nearby since no longer attacking
             target_tuple = self.get_nearest_sprite(creature, self.food_list)
             if (target_tuple):
                 target = target_tuple[0]
@@ -1178,28 +1283,36 @@ class MyGame(arcade.View):
                     creature.target = target
             return
 
+        # get distance and chase value
         dist = arcade.get_distance_between_sprites(creature,creature.attack_targ)
         chase = creature.aggro * creature.biome_affinity[creature.attack_targ.cur_biome]
+        # if target outside of set distance and chase lower than random value then remove creature from target
         if (chase < random.randint(0,50)/100 and dist > CREATURE_WIDTH + 10) or creature.attack_targ.state == "dying":
             if creature.attack_targ.def_targ == creature:
                 creature.attack_targ.def_targ = None
+                creature.attack_targ.running = False
             if creature.attack_targ.attack_targ == creature:
                 creature.def_targ = creature.attack_targ
             creature.attack_targ = None
             creature.boredom = 0
             return
+        # bordom value to prevent long chases
         creature.boredom = creature.boredom + 1
+        # if bordom too high then remove target
         if creature.boredom > 35:
             if creature.attack_targ.def_targ == creature:
                 creature.attack_targ.def_targ = None
+                creature.attack_targ.running = False
             if creature.attack_targ.attack_targ == creature:
                 creature.def_targ = creature.attack_targ
             creature.attack_targ = None
             creature.boredom = 0
             return
+        # if too far out of sight range then stop chasing
         if dist > CREATURE_SIGHT * creature.sight_mod * 1.3:
             if creature.attack_targ.def_targ == creature:
                 creature.attack_targ.def_targ = None
+                creature.attack_targ.running = False
             if creature.attack_targ.attack_targ == creature:
                 creature.def_targ = creature.attack_targ
             creature.attack_targ = None
@@ -1210,21 +1323,29 @@ class MyGame(arcade.View):
             creature.boredom = 0
             return
 
+        # if inside attack range
         if dist < CREATURE_WIDTH + 10:
             creature.state = "attacking"
+            # deal damage
             if creature.attack_targ.hp > 0:
                 creature.attack_targ.hp = creature.attack_targ.hp - 1.5 * creature.damage_mod
+                # if creature dies feed off creature
                 if creature.attack_targ.hp < 0:
                     creature.feed(creature.attack_targ.max_food/3)
                     creature.num_kills = creature.num_kills + 1
                     message_center.append("Creature "+str(creature.id)+" has killed creature "+ str(creature.attack_targ.id)+" ("+str(creature.num_kills)+").")
                     creature.attack_targ.no_food = True
+                    # breed if needed
+                    if (creature.fullness >= creature.max_food):
+                        self.breed(creature)
             creature.boredom = 0
 
+        # if not in attack range move to target
         else:
+            # get direction
             direct = self.get_target_direction(creature, creature.attack_targ)
 
-
+            #get biome
             i = int((creature.center_x + 50)/100)
             if(i<0):
                 i=0
@@ -1237,10 +1358,10 @@ class MyGame(arcade.View):
                 j=24
             biome = [self.biome_list[i][j]]
             creature.cur_biome = biome[0].biome
-
+            # do movement
             creature.change_x = MOVEMENT_SPEED * creature.get_speed() * direct[0]
             creature.change_y = MOVEMENT_SPEED * creature.get_speed() * direct[1]
-
+        # make sure in bounds
         if creature.center_x > BIOME_SIZE * BIOME_LENGTH - 50:
             creature.center_x = BIOME_SIZE * BIOME_LENGTH - 50
         elif creature.center_x < -50:
@@ -1249,7 +1370,7 @@ class MyGame(arcade.View):
             creature.center_y = BIOME_SIZE * BIOME_LENGTH - 50
         elif creature.center_y < -50:
             creature.center_y = -50
-
+        # check to see if ate any food
         eat_list = arcade.check_for_collision_with_list(creature, self.food_list)
         for food in eat_list:
             if(creature.target == food):
@@ -1267,6 +1388,12 @@ class MyGame(arcade.View):
 
 
     def get_target_direction(self, creature: arcade.Sprite, target: arcade.Sprite):
+        """
+        Get direction vector to target sprite
+        :param creature:
+        :param target:
+        :return: direction vector
+        """
         x_dist = creature.center_x - target.center_x
         y_dist = creature.center_y - target.center_y
         return [numpy.sign(x_dist)*(-1), numpy.sign(y_dist)*(-1)]
@@ -1274,6 +1401,12 @@ class MyGame(arcade.View):
 
 
     def get_nearest_sprite(self, creature, list):
+        """
+        rewrite of aracde version that takes into acount sight to limit number of distances checked
+        :param creature:
+        :param list:
+        :return:
+        """
         if len(list) == 0:
             return None
         indecies = []
@@ -1296,6 +1429,10 @@ class MyGame(arcade.View):
 
 
     def display_simulation_controls(self):
+        """
+        displays the simulation controls
+        :return:
+        """
         self.update_font_size()
         top_margin = self.font_size * 14
         scale=1
@@ -1345,6 +1482,10 @@ class MyGame(arcade.View):
 
 
     def display_message_center(self):
+        """
+        displays the message center
+        :return:
+        """
         global message_center
         scaling=0
 
@@ -1402,6 +1543,10 @@ class MyGame(arcade.View):
         scaling += 1
 
     def display_creature_stats(self):
+        """
+        displays creature stats
+        :return:
+        """
         #maintain same creature in display
         i=self.creature_display_stats_index
         if self.creature_displayed!=None:
@@ -1509,7 +1654,7 @@ class MyGame(arcade.View):
 
 
     #loads two textures on reverse and on normal for left and right animations
-    def load_texture_pair(filename):
+    def load_texture_pair(self, filename):
         """
         Load a texture pair, with the second being a mirror image.
         """
@@ -1535,10 +1680,9 @@ class MyGame(arcade.View):
     def on_key_press(self, key, key_modifiers):
         """
         Called whenever a key on the keyboard is pressed.
-
-        For a full list of keys, see:
-        http://arcade.academy/arcade.key.html
+        Controls camera movement
         """
+        # camera movement
         if key == arcade.key.UP or key==arcade.key.W:
             self.hold_up=True
         elif key == arcade.key.DOWN or key==arcade.key.S:
@@ -1557,8 +1701,10 @@ class MyGame(arcade.View):
         """
         Called whenever the user lets off a previously pressed key.
         """
+        # zoom
         if (key == arcade.key.MINUS or key == arcade.key.EQUAL):
             self.view_zoom="none"
+        # movement
         elif key == arcade.key.UP or key == arcade.key.W:
             self.hold_up = False
         elif key == arcade.key.DOWN or key == arcade.key.S:
@@ -1579,6 +1725,7 @@ class MyGame(arcade.View):
                 for c in self.creature_list:
                     if(c.state!="dying"):
                         c.state="walking"
+        # other controls
         elif key == arcade.key.L:
             if self.simulation_speed<100:
                 self.simulation_speed+=1
@@ -1612,8 +1759,10 @@ class MyGame(arcade.View):
     def on_mouse_release(self, x, y, button, key_modifiers):
         """
         Called when a user releases a mouse button.
+        Used to select creature
         """
 
+        #select creatues whos stats to show
         for i in range(0, len(self.creature_list)):
             # click on creature
             #adjust x and y for view port
